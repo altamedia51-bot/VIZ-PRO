@@ -187,6 +187,7 @@ export const Editor: React.FC<EditorProps> = ({ project: initialProject, onExit 
       ...project,
       elements: [...project.elements, newEl]
     });
+    setSelectedElementId(newEl.id);
   };
 
   const updateElement = (id: string, updates: Partial<VizElement>) => {
@@ -234,6 +235,7 @@ export const Editor: React.FC<EditorProps> = ({ project: initialProject, onExit 
         recorderRef.current = new Recorder(canvas, audioContext, dest);
         recorderRef.current.start();
         setIsRecording(true);
+        setSelectedElementId(null);
         if (!isPlaying) togglePlay(); // Start playing automatically
       }
     }
@@ -729,6 +731,7 @@ export const Editor: React.FC<EditorProps> = ({ project: initialProject, onExit 
                 getAudioData={getAudioData}
                 getWaveformData={getWaveformData}
                 isPlaying={isPlaying || isRecording}
+                isRecording={isRecording}
                 currentTime={currentTime}
                 selectedElementId={selectedElementId}
                 onUpdateElement={updateElement}

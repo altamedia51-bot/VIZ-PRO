@@ -6,6 +6,7 @@ interface CanvasRendererProps {
   getAudioData: () => { dataArray: Uint8Array; bufferLength: number };
   getWaveformData: () => { dataArray: Uint8Array; bufferLength: number };
   isPlaying: boolean;
+  isRecording?: boolean;
   currentTime?: number;
   selectedElementId?: string | null;
   onUpdateElement?: (id: string, updates: Partial<VizElement>) => void;
@@ -16,7 +17,7 @@ export interface CanvasRendererRef {
   getCanvas: () => HTMLCanvasElement | null;
 }
 
-export const CanvasRenderer = forwardRef<CanvasRendererRef, CanvasRendererProps>(({ project, getAudioData, getWaveformData, isPlaying, currentTime = 0, selectedElementId, onUpdateElement, onSelectElement }, ref) => {
+export const CanvasRenderer = forwardRef<CanvasRendererRef, CanvasRendererProps>(({ project, getAudioData, getWaveformData, isPlaying, isRecording = false, currentTime = 0, selectedElementId, onUpdateElement, onSelectElement }, ref) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationRef = useRef<number>(0);
   const bgImageRef = useRef<HTMLImageElement | null>(null);
@@ -362,17 +363,10 @@ export const CanvasRenderer = forwardRef<CanvasRendererRef, CanvasRendererProps>
             let alpha = 1;
             
             let textToRender = '';
+            let activeSub: any = null;
+            const currentT = currentTimeRef.current;
             if (el.type === 'text') {
               textToRender = el.text;
-              if (el.textCase) {
-                if (el.textCase === 'uppercase') {
-                  textToRender = textToRender.toUpperCase();
-                } else if (el.textCase === 'lowercase') {
-                  textToRender = textToRender.toLowerCase();
-                } else if (el.textCase === 'capitalize') {
-                  textToRender = textToRender.replace(/\b\w/g, c => c.toUpperCase());
-                }
-              }
               if (el.animation === 'glow_pulse') {
                 const pulse = Math.sin(time * 0.003) * 0.5 + 0.5;
                 ctx.shadowBlur = 10 + pulse * 20;
@@ -382,25 +376,26 @@ export const CanvasRenderer = forwardRef<CanvasRendererRef, CanvasRendererProps>
               } else if (el.animation === 'wave') {
                 const waveFreq = freqData.length ? freqData.reduce((a,b)=>a+b,0) / freqData.length : 0;
                 finalScale = 1 + (waveFreq / 255) * 0.2;
-              }            } else if (el.type === 'subtitle') {
-              const currentT = currentTimeRef.current;
-              const activeSub = project?.subtitles?.find(s => currentT >= s.start && currentT <= s.end);
-              textToRender = activeSub ? activeSub.text : '';
-                 
-              if (el.shadowBlur) {
-                ctx.shadowBlur = el.shadowBlur;
-                ctx.shadowColor = el.shadowColor || '#000000';
               }
-              
-              if (!textToRender) {
-                 if (draggingId === el.id || selectedElementId === el.id) {
-                   textToRender = 'Subtitle Placeholder';
+            } else if (el.type === 'subtitle') {
+              activeSub = project?.subtitles?.find(s => currentT >= s.start && currentT <= s.end);
+              textToRender = activeSub ? activeSub.text : '';
+                  
+              if ((el as any).shadowBlur) {
+                ctx.shadowBlur = (el as any).shadowBlur;
+                ctx.shadowColor = (el as any).shadowColor || '#000000';
+              }
+            }
+               
+            if (!textToRender) {
+                 if (!isRecording && (draggingId === el.id || selectedElementId === el.id)) {
+                   textToRender = el.type === 'subtitle' ? 'Subtitle Placeholder' : 'Teks Baru';
                  } else {
                    continue;
                  }
-              }
+            }
 
-              if (el.textCase) {
+            if (el.textCase) {
                 if (el.textCase === 'uppercase') {
                   textToRender = textToRender.toUpperCase();
                 } else if (el.textCase === 'lowercase') {
@@ -408,7 +403,7 @@ export const CanvasRenderer = forwardRef<CanvasRendererRef, CanvasRendererProps>
                 } else if (el.textCase === 'capitalize') {
                   textToRender = textToRender.replace(/\b\w/g, c => c.toUpperCase());
                 }
-              }
+            }
 
               ctx.font = `${el.fontSize}px ${el.fontFamily}`;
               ctx.textAlign = 'center';
@@ -563,7 +558,6 @@ export const CanvasRenderer = forwardRef<CanvasRendererRef, CanvasRendererProps>
               ctx.shadowOffsetX = 0;
               ctx.shadowOffsetY = 0;
               ctx.letterSpacing = '0px';
-            }
           }
           else if (el.type === 'waveform') {
              ctx.lineWidth = el.lineWidth;
