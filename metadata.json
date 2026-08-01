@@ -1,0 +1,6 @@
+{
+  "name": "VIZ Studio",
+  "description": "A music visualizer editor with real-time analytics and interactive data management.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
