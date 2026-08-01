@@ -66,6 +66,7 @@ export interface TextElement extends BaseElement {
   letterSpacing?: number;
   useGradient?: boolean;
   animation?: 'none' | 'glow_pulse' | 'wave' | 'bounce';
+  textCase?: 'none' | 'uppercase' | 'lowercase' | 'capitalize';
 }
 
 export interface WaveformElement extends BaseElement {
@@ -182,6 +183,8 @@ export interface SubtitleElement extends BaseElement {
   fontSize: number;
   fontFamily: string;
   letterSpacing?: number;
+  templateStyle?: 'default' | 'bubble_yellow' | 'bubble_black' | 'neon' | 'glow_border' | 'tiktok_pop' | 'tiktok_karaoke' | 'tiktok_shadow';
+  textCase?: 'none' | 'uppercase' | 'lowercase' | 'capitalize';
 }
 
 export type VizElement = BarsElement | CircleElement | TextElement | SubtitleElement | WaveformElement | ParticlesElement | OrbsElement | NeonGridElement | DoubleCircleElement | SmoothCurveElement | CircularSpectrumElement | SymmetricalMirrorElement | BassPulseElement | MultiSineElement | SpiralGalaxyElement | FlamesElement | RainElement | TriangleSpectrumElement | DiamondSpectrumElement | GlowingRingElement | MirroredBarsElement;

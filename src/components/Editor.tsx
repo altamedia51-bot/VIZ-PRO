@@ -24,6 +24,7 @@ export const Editor: React.FC<EditorProps> = ({ project: initialProject, onExit 
   const [activeTab, setActiveTab] = useState<TabType>('visualizer');
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState<FilterType>('spectrum');
+  const [subtitleTab, setSubtitleTab] = useState<'basic' | 'templates'>('templates');
   const recorderRef = useRef<Recorder | null>(null);
   const rendererRef = useRef<CanvasRendererRef>(null);
 
@@ -808,6 +809,58 @@ export const Editor: React.FC<EditorProps> = ({ project: initialProject, onExit 
                   </label>
                 </div>
 
+                
+                {el.type === 'subtitle' && (
+                  <div className="space-y-4 pt-4 border-t border-white/5">
+                    <div className="flex gap-2 p-1 bg-black/40 rounded-lg">
+                      <button 
+                        onClick={() => setSubtitleTab('basic')}
+                        className={`flex-1 py-1.5 text-[10px] font-bold uppercase rounded ${subtitleTab === 'basic' ? 'bg-white/10 text-white' : 'text-gray-500 hover:text-gray-300'}`}
+                      >
+                        Basic
+                      </button>
+                      <button 
+                        onClick={() => setSubtitleTab('templates')}
+                        className={`flex-1 py-1.5 text-[10px] font-bold uppercase rounded ${subtitleTab === 'templates' ? 'bg-white/10 text-white' : 'text-gray-500 hover:text-gray-300'}`}
+                      >
+                        Templates
+                      </button>
+                    </div>
+
+                    {subtitleTab === 'templates' && (
+                      <div className="space-y-3">
+                        <h3 className="text-[10px] text-gray-500 uppercase font-bold">Text Templates</h3>
+                        <div className="grid grid-cols-2 gap-2">
+                          <button onClick={() => updateElement(el.id, { templateStyle: 'default', color: '#ffffff' })} className="p-3 bg-[#1A1A1A] border border-white/5 hover:border-blue-500 rounded flex items-center justify-center min-h-[60px]">
+                            <span className="text-white font-bold">DEFAULT</span>
+                          </button>
+                          <button onClick={() => updateElement(el.id, { templateStyle: 'bubble_yellow', color: '#000000' })} className="p-3 bg-[#1A1A1A] border border-white/5 hover:border-blue-500 rounded flex items-center justify-center min-h-[60px]">
+                            <span className="bg-[#FFD700] text-black px-2 py-1 rounded font-bold text-xs">BUBBLE</span>
+                          </button>
+                          <button onClick={() => updateElement(el.id, { templateStyle: 'bubble_black', color: '#ffffff' })} className="p-3 bg-[#1A1A1A] border border-white/5 hover:border-blue-500 rounded flex items-center justify-center min-h-[60px]">
+                            <span className="bg-black text-white border border-white px-2 py-1 rounded font-bold text-xs">BLACK</span>
+                          </button>
+                          <button onClick={() => updateElement(el.id, { templateStyle: 'neon', color: '#00ffff' })} className="p-3 bg-[#1A1A1A] border border-white/5 hover:border-blue-500 rounded flex items-center justify-center min-h-[60px]">
+                            <span className="text-white font-bold text-xs" style={{textShadow: '0 0 10px #00ffff'}}>NEON</span>
+                          </button>
+                          <button onClick={() => updateElement(el.id, { templateStyle: 'glow_border', color: '#ff00ff' })} className="p-3 bg-[#1A1A1A] border border-white/5 hover:border-blue-500 rounded flex items-center justify-center min-h-[60px]">
+                            <span className="font-bold text-xs" style={{WebkitTextStroke: '1px #ff00ff', color: 'transparent', textShadow: '0 0 5px #ff00ff'}}>BORDER</span>
+                          </button>
+                          <button onClick={() => updateElement(el.id, { templateStyle: 'tiktok_pop', color: '#ffffff' })} className="p-3 bg-[#1A1A1A] border border-white/5 hover:border-blue-500 rounded flex items-center justify-center min-h-[60px]">
+                            <span className="text-white font-bold text-xs" style={{textShadow: '2px 2px 0px #000000'}}>POP-UP</span>
+                          </button>
+                          <button onClick={() => updateElement(el.id, { templateStyle: 'tiktok_karaoke', color: '#00ff00' })} className="p-3 bg-[#1A1A1A] border border-white/5 hover:border-blue-500 rounded flex items-center justify-center min-h-[60px]">
+                            <span className="text-white font-bold text-xs" style={{textShadow: '2px 2px 0px #000000'}}>KARAOKE</span>
+                          </button>
+                          <button onClick={() => updateElement(el.id, { templateStyle: 'tiktok_shadow', color: '#ffffff' })} className="p-3 bg-[#1A1A1A] border border-white/5 hover:border-blue-500 rounded flex items-center justify-center min-h-[60px]">
+                            <span className="text-white font-bold text-[10px]" style={{textShadow: '-2px 0px 0px #00ffff, 2px 0px 0px #ff0050'}}>TIKTOK</span>
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 {/* Specific Properties */}
                 <div className="space-y-4 pt-4 border-t border-white/5">
                   <h3 className="text-[10px] text-gray-500 uppercase tracking-[0.2em] font-bold flex items-center gap-2">
@@ -836,17 +889,34 @@ export const Editor: React.FC<EditorProps> = ({ project: initialProject, onExit 
                     </label>
                   )}
                   
-                  {el.type === 'text' && (
+                  {(el.type === 'text' || el.type === 'subtitle') && (
                     <>
-                      <label className="block">
-                        <span className="text-[10px] text-gray-500 mb-1 block">Teks</span>
-                        <input type="text" value={el.text} onChange={e => updateElement(el.id, { text: e.target.value })} className="w-full bg-black/50 border border-white/10 rounded px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500 transition-colors" />
-                      </label>
+                      {el.type === 'text' && (
+                        <label className="block">
+                          <span className="text-[10px] text-gray-500 mb-1 block">Teks</span>
+                          <input type="text" value={el.text} onChange={e => updateElement(el.id, { text: e.target.value })} className="w-full bg-black/50 border border-white/10 rounded px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500 transition-colors" />
+                        </label>
+                      )}
+                      
                       <label className="block">
                         <div className="flex justify-between mb-1">
                           <span className="text-[10px] text-gray-500">Ukuran Font ({el.fontSize}px)</span>
                         </div>
                         <input type="range" min="10" max="200" value={el.fontSize} onChange={e => updateElement(el.id, { fontSize: Number(e.target.value) })} className="w-full h-1.5 bg-white/10 rounded-full appearance-none cursor-pointer accent-indigo-500" />
+                      </label>
+                      
+                      <label className="block">
+                        <span className="text-[10px] text-gray-500 mb-1 block">Format Teks (Case)</span>
+                        <select 
+                          value={el.textCase || 'none'} 
+                          onChange={e => updateElement(el.id, { textCase: e.target.value as any })}
+                          className="w-full bg-black/50 border border-white/10 rounded px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500 transition-colors"
+                        >
+                          <option value="none">Asli (Normal)</option>
+                          <option value="uppercase">HURUF BESAR (UPPERCASE)</option>
+                          <option value="lowercase">huruf kecil (lowercase)</option>
+                          <option value="capitalize">Huruf Pertama Besar (Capitalize)</option>
+                        </select>
                       </label>
                     </>
                   )}
