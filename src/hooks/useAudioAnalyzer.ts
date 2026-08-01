@@ -14,6 +14,7 @@ export function useAudioAnalyzer({ audioUrl }: UseAudioAnalyzerProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [duration, setDuration] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
+  const [volume, setVolumeState] = useState(1);
 
   const initAudio = useCallback(() => {
     if (!audioContextRef.current) {
@@ -35,6 +36,8 @@ export function useAudioAnalyzer({ audioUrl }: UseAudioAnalyzerProps) {
       audioRef.current.addEventListener('ended', () => {
         setIsPlaying(false);
       });
+      
+      audioRef.current.volume = volume;
       
       analyserRef.current = audioContextRef.current.createAnalyser();
       analyserRef.current.fftSize = 512;
@@ -119,6 +122,13 @@ export function useAudioAnalyzer({ audioUrl }: UseAudioAnalyzerProps) {
     audioRef: audioRef.current,
     audioContext: audioContextRef.current,
     analyser: analyserRef.current,
-    sourceNode: sourceRef.current
+    sourceNode: sourceRef.current,
+    volume,
+    setVolume: (val: number) => {
+      setVolumeState(val);
+      if (audioRef.current) {
+        audioRef.current.volume = val;
+      }
+    }
   };
 }
