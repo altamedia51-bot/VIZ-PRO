@@ -29,7 +29,7 @@ export interface Project {
   subtitles?: Subtitle[];
 }
 
-export type ElementType = 'bars' | 'circle' | 'text' | 'waveform' | 'particles' | 'orbs' | 'neon_grid' | 'double_circle' | 'smooth_curve' | 'circular_spectrum' | 'symmetrical_mirror' | 'bass_pulse' | 'multi_sine' | 'spiral_galaxy' | 'flames' | 'rain' | 'triangle_spectrum' | 'diamond_spectrum' | 'glowing_ring' | 'mirrored_bars' | 'subtitle';
+export type ElementType = 'bars' | 'circle' | 'text' | 'waveform' | 'particles' | 'orbs' | 'neon_grid' | 'double_circle' | 'smooth_curve' | 'circular_spectrum' | 'symmetrical_mirror' | 'bass_pulse' | 'multi_sine' | 'spiral_galaxy' | 'flames' | 'rain' | 'triangle_spectrum' | 'diamond_spectrum' | 'glowing_ring' | 'mirrored_bars' | 'subtitle' | 'image';
 
 export interface BaseElement {
   id: string;
@@ -187,7 +187,14 @@ export interface SubtitleElement extends BaseElement {
   textCase?: 'none' | 'uppercase' | 'lowercase' | 'capitalize';
 }
 
-export type VizElement = BarsElement | CircleElement | TextElement | SubtitleElement | WaveformElement | ParticlesElement | OrbsElement | NeonGridElement | DoubleCircleElement | SmoothCurveElement | CircularSpectrumElement | SymmetricalMirrorElement | BassPulseElement | MultiSineElement | SpiralGalaxyElement | FlamesElement | RainElement | TriangleSpectrumElement | DiamondSpectrumElement | GlowingRingElement | MirroredBarsElement;
+export interface ImageElement extends BaseElement {
+  type: 'image';
+  src: string;
+  width: number;
+  height: number;
+}
+
+export type VizElement = BarsElement | CircleElement | TextElement | SubtitleElement | WaveformElement | ParticlesElement | OrbsElement | NeonGridElement | DoubleCircleElement | SmoothCurveElement | CircularSpectrumElement | SymmetricalMirrorElement | BassPulseElement | MultiSineElement | SpiralGalaxyElement | FlamesElement | RainElement | TriangleSpectrumElement | DiamondSpectrumElement | GlowingRingElement | MirroredBarsElement | ImageElement;
 
 export interface AudioMetrics {
   rms: number;

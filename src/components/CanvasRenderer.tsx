@@ -22,8 +22,10 @@ export const CanvasRenderer = forwardRef<CanvasRendererRef, CanvasRendererProps>
   const animationRef = useRef<number>(0);
   const bgImageRef = useRef<HTMLImageElement | null>(null);
   const bgVideoRef = useRef<HTMLVideoElement | null>(null);
+  const imageCacheRef = useRef<Record<string, HTMLImageElement>>({});
 
   const [draggingId, setDraggingId] = useState<string | null>(null);
+  const [renderCount, setRenderCount] = useState(0);
   const dragOffset = useRef({ x: 0, y: 0 });
   const currentTimeRef = useRef(currentTime);
 
@@ -68,6 +70,11 @@ export const CanvasRenderer = forwardRef<CanvasRendererRef, CanvasRendererProps>
         const dx = x - el.x;
         const dy = y - el.y;
         hit = Math.sqrt(dx * dx + dy * dy) <= el.radius * elScale;
+      } else if (el.type === 'image') {
+        const imgEl = el as any;
+        const w = (imgEl.width || 48) * elScale;
+        const h = (imgEl.height || 48) * elScale;
+        hit = x >= el.x - w / 2 && x <= el.x + w / 2 && y >= el.y - h / 2 && y <= el.y + h / 2;
       } else if ((el.type === 'text' || el.type === 'subtitle') && ctx) {
         ctx.font = `${el.fontSize}px ${el.fontFamily}`;
         const textToMeasure = el.type === 'text' ? el.text : 'Subtitle Text';
@@ -356,6 +363,36 @@ export const CanvasRenderer = forwardRef<CanvasRendererRef, CanvasRendererProps>
             ctx.lineWidth = el.lineWidth;
             ctx.stroke();
           }
+          else if (el.type === 'image') {
+              const imgEl = el as any;
+              let img = imageCacheRef.current[imgEl.src];
+              if (!img) {
+                img = new Image();
+                img.src = imgEl.src;
+                img.onload = () => {
+                    setRenderCount(c => c + 1);
+                };
+                imageCacheRef.current[imgEl.src] = img;
+              }
+              
+              if (img.complete && img.naturalWidth > 0) {
+                ctx.save();
+                ctx.translate(el.x, el.y);
+                ctx.rotate((el.rotation * Math.PI) / 180);
+                ctx.scale(el.scale, el.scale);
+                ctx.globalAlpha = el.opacity;
+                
+                ctx.drawImage(img, -imgEl.width / 2, -imgEl.height / 2, imgEl.width, imgEl.height);
+                
+                if (!isRecording && selectedElementId === el.id) {
+                   ctx.strokeStyle = '#3b82f6';
+                   ctx.lineWidth = 2 / el.scale;
+                   ctx.strokeRect(-imgEl.width / 2 - 2, -imgEl.height / 2 - 2, imgEl.width + 4, imgEl.height + 4);
+                }
+                
+                ctx.restore();
+              }
+          }
           else if (el.type === 'text' || el.type === 'subtitle') {
             const time = performance.now();
             let finalY = el.y;
@@ -408,6 +445,9 @@ export const CanvasRenderer = forwardRef<CanvasRendererRef, CanvasRendererProps>
               ctx.font = `${el.fontSize}px ${el.fontFamily}`;
               ctx.textAlign = 'center';
               ctx.textBaseline = 'middle';
+              
+              const isArabic = /[؀-ۿ]/.test(textToRender);
+              ctx.direction = isArabic ? 'rtl' : 'ltr';
                  
               if (el.letterSpacing) {
                  ctx.letterSpacing = `${el.letterSpacing}px`;

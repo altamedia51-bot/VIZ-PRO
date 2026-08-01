@@ -1,3 +1,4 @@
+import { PLATFORM_ICONS } from "../lib/icons";
 import React, { useRef, useState, useCallback, useEffect } from 'react';
 import { Project, VizElement, BackgroundType, TextElement } from '../types';
 import { CanvasRenderer, CanvasRendererRef } from './CanvasRenderer';
@@ -600,7 +601,7 @@ export const Editor: React.FC<EditorProps> = ({ project: initialProject, onExit 
                                 <div className="flex justify-between mb-1">
                                   <span className="text-[10px] text-gray-400">Ukuran Font ({el.fontSize}px)</span>
                                 </div>
-                                <input type="range" min="12" max="200" value={el.fontSize} onChange={e => updateElement(el.id, { fontSize: Number(e.target.value) })} className="w-full h-1.5 bg-white/10 rounded-full appearance-none cursor-pointer accent-blue-500" />
+                                <input type="range" min="12" max="200" value={el.fontSize || 16} onChange={e => updateElement(el.id, { fontSize: Number(e.target.value) })} className="w-full h-1.5 bg-white/10 rounded-full appearance-none cursor-pointer accent-blue-500" />
                               </label>
                             </div>
                             <div className="flex-1">
@@ -616,7 +617,7 @@ export const Editor: React.FC<EditorProps> = ({ project: initialProject, onExit 
                           <div>
                             <label className="block text-[10px] text-gray-400 mb-2">Warna & Gradient Teks</label>
                             <div className="flex items-center gap-3">
-                              <input type="color" value={el.color} onChange={e => updateElement(el.id, { color: e.target.value })} className="w-8 h-8 rounded border border-white/10 cursor-pointer bg-transparent" />
+                              <input type="color" value={el.color || '#ffffff'} onChange={e => updateElement(el.id, { color: e.target.value })} className="w-8 h-8 rounded border border-white/10 cursor-pointer bg-transparent" />
                               <label className="flex items-center gap-2 cursor-pointer">
                                 <input type="checkbox" checked={el.useGradient || false} onChange={e => updateElement(el.id, { useGradient: e.target.checked })} className="rounded bg-[#1A1A1A] border-white/10 text-blue-500 focus:ring-blue-500" />
                                 <span className="text-xs text-gray-300">Gunakan Gradient Teks</span>
@@ -647,6 +648,36 @@ export const Editor: React.FC<EditorProps> = ({ project: initialProject, onExit 
 
             {activeTab === 'layers' && (
               <div className="p-6">
+                <h2 className="text-[10px] text-gray-500 uppercase tracking-[0.2em] font-bold mb-4">Tambah Icon / Sticker</h2>
+                <div className="grid grid-cols-4 gap-2 mb-8">
+                  {PLATFORM_ICONS.map(icon => (
+                    <button
+                      key={icon.name}
+                      onClick={() => {
+                        const newEl: any = {
+                          id: crypto.randomUUID(),
+                          type: 'image',
+                          src: icon.src,
+                          x: 640,
+                          y: 360,
+                          scale: 1,
+                          rotation: 0,
+                          opacity: 1,
+                          width: 48,
+                          height: 48
+                        };
+                        setProject(p => ({ ...p, elements: [...p.elements, newEl] }));
+                        setSelectedElementId(newEl.id);
+                      }}
+                      className="p-2 bg-[#1A1A1A] border border-white/5 rounded hover:bg-white/10 flex flex-col items-center gap-1 transition-colors"
+                      title={icon.name}
+                    >
+                      <img src={icon.src} alt={icon.name} className="w-6 h-6 object-contain" />
+                      <span className="text-[8px] text-gray-400 text-center">{icon.name}</span>
+                    </button>
+                  ))}
+                </div>
+
                 <h2 className="text-[10px] text-gray-500 uppercase tracking-[0.2em] font-bold mb-4">Layers</h2>
                 {project.elements.length === 0 ? (
                   <p className="text-xs text-gray-500 italic">No elements added.</p>
@@ -853,11 +884,11 @@ export const Editor: React.FC<EditorProps> = ({ project: initialProject, onExit 
                   <div className="grid grid-cols-2 gap-3">
                     <label className="block">
                       <span className="text-[10px] text-gray-500 mb-1 block">Posisi X (px)</span>
-                      <input type="number" value={el.x} onChange={e => updateElement(el.id, { x: Number(e.target.value) })} className="w-full bg-black/50 border border-white/10 rounded px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500 transition-colors" />
+                      <input type="number" value={el.x ?? 0} onChange={e => updateElement(el.id, { x: Number(e.target.value) })} className="w-full bg-black/50 border border-white/10 rounded px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500 transition-colors" />
                     </label>
                     <label className="block">
                       <span className="text-[10px] text-gray-500 mb-1 block">Posisi Y (px)</span>
-                      <input type="number" value={el.y} onChange={e => updateElement(el.id, { y: Number(e.target.value) })} className="w-full bg-black/50 border border-white/10 rounded px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500 transition-colors" />
+                      <input type="number" value={el.y ?? 0} onChange={e => updateElement(el.id, { y: Number(e.target.value) })} className="w-full bg-black/50 border border-white/10 rounded px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500 transition-colors" />
                     </label>
                   </div>
                   <label className="block">
@@ -876,7 +907,7 @@ export const Editor: React.FC<EditorProps> = ({ project: initialProject, onExit 
                     <div className="flex justify-between mb-1">
                       <span className="text-[10px] text-gray-500">Opasitas ({Math.round(el.opacity * 100)}%)</span>
                     </div>
-                    <input type="range" min="0" max="1" step="0.05" value={el.opacity} onChange={e => updateElement(el.id, { opacity: Number(e.target.value) })} className="w-full h-1.5 bg-white/10 rounded-full appearance-none cursor-pointer accent-indigo-500" />
+                    <input type="range" min="0" max="1" step="0.05" value={el.opacity ?? 1} onChange={e => updateElement(el.id, { opacity: Number(e.target.value) })} className="w-full h-1.5 bg-white/10 rounded-full appearance-none cursor-pointer accent-indigo-500" />
                   </label>
                 </div>
 
@@ -933,13 +964,14 @@ export const Editor: React.FC<EditorProps> = ({ project: initialProject, onExit 
                 )}
 
                 {/* Specific Properties */}
+                {el.type !== 'image' && (
                 <div className="space-y-4 pt-4 border-t border-white/5">
                   <h3 className="text-[10px] text-gray-500 uppercase tracking-[0.2em] font-bold flex items-center gap-2">
                     <Settings size={12} /> Properti Visualizer ({el.type})
                   </h3>
                   <label className="block">
                     <span className="text-[10px] text-gray-500 mb-2 block">Warna Utama</span>
-                    <input type="color" value={el.color} onChange={e => updateElement(el.id, { color: e.target.value })} className="block w-full h-8 rounded cursor-pointer bg-transparent border-0 p-0" />
+                    <input type="color" value={el.color || '#ffffff'} onChange={e => updateElement(el.id, { color: e.target.value })} className="block w-full h-8 rounded cursor-pointer bg-transparent border-0 p-0" />
                   </label>
                   
                   <div className="flex items-center gap-2 mt-2 mb-2">
@@ -965,7 +997,7 @@ export const Editor: React.FC<EditorProps> = ({ project: initialProject, onExit 
                       {el.type === 'text' && (
                         <label className="block">
                           <span className="text-[10px] text-gray-500 mb-1 block">Teks</span>
-                          <input type="text" value={el.text} onChange={e => updateElement(el.id, { text: e.target.value })} className="w-full bg-black/50 border border-white/10 rounded px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500 transition-colors" />
+                          <input type="text" value={el.text || ''} onChange={e => updateElement(el.id, { text: e.target.value })} className="w-full bg-black/50 border border-white/10 rounded px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500 transition-colors" />
                         </label>
                       )}
                       
@@ -973,7 +1005,7 @@ export const Editor: React.FC<EditorProps> = ({ project: initialProject, onExit 
                         <div className="flex justify-between mb-1">
                           <span className="text-[10px] text-gray-500">Ukuran Font ({el.fontSize}px)</span>
                         </div>
-                        <input type="range" min="10" max="200" value={el.fontSize} onChange={e => updateElement(el.id, { fontSize: Number(e.target.value) })} className="w-full h-1.5 bg-white/10 rounded-full appearance-none cursor-pointer accent-indigo-500" />
+                        <input type="range" min="10" max="200" value={el.fontSize || 16} onChange={e => updateElement(el.id, { fontSize: Number(e.target.value) })} className="w-full h-1.5 bg-white/10 rounded-full appearance-none cursor-pointer accent-indigo-500" />
                       </label>
                       
                       <label className="block">
@@ -997,7 +1029,7 @@ export const Editor: React.FC<EditorProps> = ({ project: initialProject, onExit 
                       <div className="flex justify-between mb-1">
                         <span className="text-[10px] text-gray-500">Tinggi Max ({el.height}px)</span>
                       </div>
-                      <input type="range" min="50" max="600" value={el.height} onChange={e => updateElement(el.id, { height: Number(e.target.value) })} className="w-full h-1.5 bg-white/10 rounded-full appearance-none cursor-pointer accent-indigo-500" />
+                      <input type="range" min="50" max="600" value={el.height || 100} onChange={e => updateElement(el.id, { height: Number(e.target.value) })} className="w-full h-1.5 bg-white/10 rounded-full appearance-none cursor-pointer accent-indigo-500" />
                     </label>
                   )}
 
@@ -1006,7 +1038,7 @@ export const Editor: React.FC<EditorProps> = ({ project: initialProject, onExit 
                       <div className="flex justify-between mb-1">
                         <span className="text-[10px] text-gray-500">Radius ({el.radius}px)</span>
                       </div>
-                      <input type="range" min="20" max="400" value={el.radius} onChange={e => updateElement(el.id, { radius: Number(e.target.value) })} className="w-full h-1.5 bg-white/10 rounded-full appearance-none cursor-pointer accent-indigo-500" />
+                      <input type="range" min="20" max="400" value={el.radius || 100} onChange={e => updateElement(el.id, { radius: Number(e.target.value) })} className="w-full h-1.5 bg-white/10 rounded-full appearance-none cursor-pointer accent-indigo-500" />
                     </label>
                   )}
 
@@ -1016,13 +1048,13 @@ export const Editor: React.FC<EditorProps> = ({ project: initialProject, onExit 
                         <div className="flex justify-between mb-1">
                           <span className="text-[10px] text-gray-500">Jumlah Partikel ({el.count})</span>
                         </div>
-                        <input type="range" min="10" max="500" value={el.count} onChange={e => updateElement(el.id, { count: Number(e.target.value) })} className="w-full h-1.5 bg-white/10 rounded-full appearance-none cursor-pointer accent-indigo-500" />
+                        <input type="range" min="10" max="500" value={el.count || 10} onChange={e => updateElement(el.id, { count: Number(e.target.value) })} className="w-full h-1.5 bg-white/10 rounded-full appearance-none cursor-pointer accent-indigo-500" />
                       </label>
                       <label className="block">
                         <div className="flex justify-between mb-1">
                           <span className="text-[10px] text-gray-500">Kecepatan ({el.speed}x)</span>
                         </div>
-                        <input type="range" min="0.1" max="5" step="0.1" value={el.speed} onChange={e => updateElement(el.id, { speed: Number(e.target.value) })} className="w-full h-1.5 bg-white/10 rounded-full appearance-none cursor-pointer accent-indigo-500" />
+                        <input type="range" min="0.1" max="5" step="0.1" value={el.speed || 1} onChange={e => updateElement(el.id, { speed: Number(e.target.value) })} className="w-full h-1.5 bg-white/10 rounded-full appearance-none cursor-pointer accent-indigo-500" />
                       </label>
                     </>
                   )}
@@ -1033,13 +1065,13 @@ export const Editor: React.FC<EditorProps> = ({ project: initialProject, onExit 
                         <div className="flex justify-between mb-1">
                           <span className="text-[10px] text-gray-500">Jumlah Orb ({el.count})</span>
                         </div>
-                        <input type="range" min="1" max="20" value={el.count} onChange={e => updateElement(el.id, { count: Number(e.target.value) })} className="w-full h-1.5 bg-white/10 rounded-full appearance-none cursor-pointer accent-indigo-500" />
+                        <input type="range" min="1" max="20" value={el.count || 10} onChange={e => updateElement(el.id, { count: Number(e.target.value) })} className="w-full h-1.5 bg-white/10 rounded-full appearance-none cursor-pointer accent-indigo-500" />
                       </label>
                       <label className="block">
                         <div className="flex justify-between mb-1">
                           <span className="text-[10px] text-gray-500">Radius Base ({el.radius}px)</span>
                         </div>
-                        <input type="range" min="10" max="200" value={el.radius} onChange={e => updateElement(el.id, { radius: Number(e.target.value) })} className="w-full h-1.5 bg-white/10 rounded-full appearance-none cursor-pointer accent-indigo-500" />
+                        <input type="range" min="10" max="200" value={el.radius || 100} onChange={e => updateElement(el.id, { radius: Number(e.target.value) })} className="w-full h-1.5 bg-white/10 rounded-full appearance-none cursor-pointer accent-indigo-500" />
                       </label>
                     </>
                   )}
@@ -1049,7 +1081,7 @@ export const Editor: React.FC<EditorProps> = ({ project: initialProject, onExit 
                       <div className="flex justify-between mb-1">
                         <span className="text-[10px] text-gray-500">Perspektif ({el.perspective})</span>
                       </div>
-                      <input type="range" min="0.5" max="3" step="0.1" value={el.perspective} onChange={e => updateElement(el.id, { perspective: Number(e.target.value) })} className="w-full h-1.5 bg-white/10 rounded-full appearance-none cursor-pointer accent-indigo-500" />
+                      <input type="range" min="0.5" max="3" step="0.1" value={el.perspective || 1} onChange={e => updateElement(el.id, { perspective: Number(e.target.value) })} className="w-full h-1.5 bg-white/10 rounded-full appearance-none cursor-pointer accent-indigo-500" />
                     </label>
                   )}
 
@@ -1058,7 +1090,7 @@ export const Editor: React.FC<EditorProps> = ({ project: initialProject, onExit 
                       <div className="flex justify-between mb-1">
                         <span className="text-[10px] text-gray-500">Radius ({el.radius}px)</span>
                       </div>
-                      <input type="range" min="20" max="400" value={el.radius} onChange={e => updateElement(el.id, { radius: Number(e.target.value) })} className="w-full h-1.5 bg-white/10 rounded-full appearance-none cursor-pointer accent-indigo-500" />
+                      <input type="range" min="20" max="400" value={el.radius || 100} onChange={e => updateElement(el.id, { radius: Number(e.target.value) })} className="w-full h-1.5 bg-white/10 rounded-full appearance-none cursor-pointer accent-indigo-500" />
                     </label>
                   )}
 
@@ -1067,7 +1099,7 @@ export const Editor: React.FC<EditorProps> = ({ project: initialProject, onExit 
                       <div className="flex justify-between mb-1">
                         <span className="text-[10px] text-gray-500">Tinggi Max ({el.height}px)</span>
                       </div>
-                      <input type="range" min="50" max="600" value={el.height} onChange={e => updateElement(el.id, { height: Number(e.target.value) })} className="w-full h-1.5 bg-white/10 rounded-full appearance-none cursor-pointer accent-indigo-500" />
+                      <input type="range" min="50" max="600" value={el.height || 100} onChange={e => updateElement(el.id, { height: Number(e.target.value) })} className="w-full h-1.5 bg-white/10 rounded-full appearance-none cursor-pointer accent-indigo-500" />
                     </label>
                   )}
                   
@@ -1077,13 +1109,13 @@ export const Editor: React.FC<EditorProps> = ({ project: initialProject, onExit 
                         <div className="flex justify-between mb-1">
                           <span className="text-[10px] text-gray-500">Jumlah Drop ({el.count})</span>
                         </div>
-                        <input type="range" min="50" max="1000" value={el.count} onChange={e => updateElement(el.id, { count: Number(e.target.value) })} className="w-full h-1.5 bg-white/10 rounded-full appearance-none cursor-pointer accent-indigo-500" />
+                        <input type="range" min="50" max="1000" value={el.count || 10} onChange={e => updateElement(el.id, { count: Number(e.target.value) })} className="w-full h-1.5 bg-white/10 rounded-full appearance-none cursor-pointer accent-indigo-500" />
                       </label>
                       <label className="block">
                         <div className="flex justify-between mb-1">
                           <span className="text-[10px] text-gray-500">Kecepatan ({el.speed}x)</span>
                         </div>
-                        <input type="range" min="0.1" max="5" step="0.1" value={el.speed} onChange={e => updateElement(el.id, { speed: Number(e.target.value) })} className="w-full h-1.5 bg-white/10 rounded-full appearance-none cursor-pointer accent-indigo-500" />
+                        <input type="range" min="0.1" max="5" step="0.1" value={el.speed || 1} onChange={e => updateElement(el.id, { speed: Number(e.target.value) })} className="w-full h-1.5 bg-white/10 rounded-full appearance-none cursor-pointer accent-indigo-500" />
                       </label>
                     </>
                   )}
@@ -1093,10 +1125,11 @@ export const Editor: React.FC<EditorProps> = ({ project: initialProject, onExit 
                       <div className="flex justify-between mb-1">
                         <span className="text-[10px] text-gray-500">Jumlah Gelombang ({el.lines})</span>
                       </div>
-                      <input type="range" min="1" max="10" value={el.lines} onChange={e => updateElement(el.id, { lines: Number(e.target.value) })} className="w-full h-1.5 bg-white/10 rounded-full appearance-none cursor-pointer accent-indigo-500" />
+                      <input type="range" min="1" max="10" value={el.lines || 1} onChange={e => updateElement(el.id, { lines: Number(e.target.value) })} className="w-full h-1.5 bg-white/10 rounded-full appearance-none cursor-pointer accent-indigo-500" />
                     </label>
                   )}
                 </div>
+                )}
               </div>
             );
           })() : (
