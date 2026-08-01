@@ -388,8 +388,8 @@ export const CanvasRenderer = forwardRef<CanvasRendererRef, CanvasRendererProps>
             }
                
             if (!textToRender) {
-                 if (!isRecording && (draggingId === el.id || selectedElementId === el.id)) {
-                   textToRender = el.type === 'subtitle' ? 'Subtitle Placeholder' : 'Teks Baru';
+                 if (!isRecording && el.type === 'text' && (draggingId === el.id || selectedElementId === el.id)) {
+                   textToRender = 'Teks Baru';
                  } else {
                    continue;
                  }
