@@ -25,6 +25,7 @@ export const Editor: React.FC<EditorProps> = ({ project: initialProject, onExit 
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState<FilterType>('spectrum');
   const [subtitleTab, setSubtitleTab] = useState<'basic' | 'templates'>('templates');
+  const [draggedSubtitleIndex, setDraggedSubtitleIndex] = useState<number | null>(null);
   const recorderRef = useRef<Recorder | null>(null);
   const rendererRef = useRef<CanvasRendererRef>(null);
 
@@ -491,7 +492,29 @@ export const Editor: React.FC<EditorProps> = ({ project: initialProject, onExit 
       </div>
       <div className="space-y-2 pb-4">
       {project.subtitles?.map((sub, index) => (
-        <div key={sub.id} className="bg-[#1A1A1A]/80 border border-white/5 rounded-lg p-3 flex flex-col gap-2">
+        <div 
+          key={sub.id} 
+          draggable
+          onDragStart={(e) => setDraggedSubtitleIndex(index)}
+          onDragOver={(e) => {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+          }}
+          onDrop={(e) => {
+            e.preventDefault();
+            if (draggedSubtitleIndex === null || draggedSubtitleIndex === index) return;
+            const newSubs = [...(project.subtitles || [])];
+            const draggedSub = newSubs[draggedSubtitleIndex];
+            newSubs.splice(draggedSubtitleIndex, 1);
+            newSubs.splice(index, 0, draggedSub);
+            setProject(prev => ({ ...prev, subtitles: newSubs }));
+            setDraggedSubtitleIndex(null);
+          }}
+          className={`bg-[#1A1A1A]/80 border ${draggedSubtitleIndex === index ? 'border-blue-500 opacity-50' : 'border-white/5'} rounded-lg p-3 flex flex-col gap-2 cursor-move hover:border-white/20 transition-colors`}
+        >
+          <div className="flex justify-center -mt-1 mb-1 cursor-move text-white/20 hover:text-white/40">
+            <div className="w-8 h-1 rounded-full bg-current"></div>
+          </div>
           <div className="flex gap-2 items-center">
             <div className="flex-1 flex flex-col gap-1">
               <span className="text-[9px] text-gray-500 uppercase font-bold tracking-wider">Mulai (detik)</span>
