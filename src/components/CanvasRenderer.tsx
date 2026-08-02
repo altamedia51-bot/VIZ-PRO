@@ -19,6 +19,7 @@ export interface CanvasRendererRef {
 
 export const CanvasRenderer = forwardRef<CanvasRendererRef, CanvasRendererProps>(({ project, getAudioData, getWaveformData, isPlaying, isRecording = false, currentTime = 0, selectedElementId, onUpdateElement, onSelectElement }, ref) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const offscreenCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const animationRef = useRef<number>(0);
   const bgImageRef = useRef<HTMLImageElement | null>(null);
   const bgVideoRef = useRef<HTMLVideoElement | null>(null);
@@ -1055,6 +1056,78 @@ export const CanvasRenderer = forwardRef<CanvasRendererRef, CanvasRendererProps>
           ctx.restore();
         }
       }
+
+      // POST-PROCESSING EFFECTS
+      const pp = project?.postProcessing;
+      if (pp && (pp.bloom || pp.chromaticAberration || pp.filmGrain || pp.lensFlare || (pp.lut && pp.lut !== 'none'))) {
+        if (!offscreenCanvasRef.current) {
+          offscreenCanvasRef.current = document.createElement('canvas');
+        }
+        const offscreen = offscreenCanvasRef.current;
+        if (offscreen.width !== canvas.width || offscreen.height !== canvas.height) {
+          offscreen.width = canvas.width;
+          offscreen.height = canvas.height;
+        }
+        const offCtx = offscreen.getContext('2d', { willReadFrequently: true });
+        if (offCtx) {
+          // Copy current canvas to offscreen
+          offCtx.clearRect(0, 0, offscreen.width, offscreen.height);
+          offCtx.drawImage(canvas, 0, 0);
+          
+          let combinedFilter = '';
+          if (pp.chromaticAberration) combinedFilter += 'url(#pp-chromatic) ';
+          if (pp.bloom) combinedFilter += 'url(#pp-bloom) ';
+          if (pp.lut && pp.lut !== 'none') combinedFilter += `url(#pp-lut-${pp.lut}) `;
+          
+          if (combinedFilter) {
+            ctx.save();
+            ctx.setTransform(1, 0, 0, 1, 0, 0); // reset transform
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.filter = combinedFilter.trim();
+            ctx.drawImage(offscreen, 0, 0);
+            ctx.restore();
+          }
+
+          // Grain and Lens Flare can be drawn over top
+          if (pp.filmGrain) {
+            ctx.save();
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
+            ctx.globalCompositeOperation = 'overlay';
+            ctx.globalAlpha = 0.08;
+            
+            // Random noise approximation (fast)
+            const grainSize = 4;
+            for (let i = 0; i < canvas.width; i += grainSize) {
+              for (let j = 0; j < canvas.height; j += grainSize) {
+                if (Math.random() > 0.5) {
+                  ctx.fillStyle = '#ffffff';
+                  ctx.fillRect(i, j, grainSize, grainSize);
+                }
+              }
+            }
+            ctx.restore();
+          }
+
+          if (pp.lensFlare) {
+             // Fake a lens flare
+             ctx.save();
+             ctx.setTransform(1, 0, 0, 1, 0, 0);
+             ctx.globalCompositeOperation = 'screen';
+             const cx = canvas.width * 0.5;
+             const cy = canvas.height * 0.5;
+             
+             // Draw a horizontal anamorphic flare
+             const flareGrad = ctx.createLinearGradient(0, cy - 5, 0, cy + 5);
+             flareGrad.addColorStop(0, 'rgba(100, 150, 255, 0)');
+             flareGrad.addColorStop(0.5, 'rgba(100, 150, 255, 0.5)');
+             flareGrad.addColorStop(1, 'rgba(100, 150, 255, 0)');
+             ctx.fillStyle = flareGrad;
+             ctx.fillRect(0, cy - 5, canvas.width, 10);
+             ctx.restore();
+          }
+        }
+      }
+
     };
 
     draw();

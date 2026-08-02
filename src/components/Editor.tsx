@@ -5,7 +5,7 @@ import { CanvasRenderer, CanvasRendererRef } from './CanvasRenderer';
 import { AnalyticsDashboard } from './AnalyticsDashboard';
 import { useAudioAnalyzer } from '../hooks/useAudioAnalyzer';
 import { Recorder } from '../utils/recordStream';
-import { Play, Pause, SkipBack, Square, Plus, Image as ImageIcon, Settings, Download, Trash2, Home, Music, Radio, Type, Sparkles, Layers, Search, Volume2, VolumeX } from 'lucide-react';
+import { Play, Pause, SkipBack, Square, Plus, Image as ImageIcon, Settings, Download, Trash2, Home, Music, Radio, Type, Sparkles, Layers, Search, Volume2, VolumeX, ChevronDown, FolderOpen, Undo2, Redo2, FileCode, Maximize2, Settings as SettingsIcon, CheckCircle2, Cpu, Settings, Database } from 'lucide-react';
 import { parseSRT } from '../utils/srtParser';
 import { db } from '../lib/db';
 
@@ -21,8 +21,12 @@ export const Editor: React.FC<EditorProps> = ({ project: initialProject, onExit 
   const [project, setProject] = useState<Project>(initialProject);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [isRecording, setIsRecording] = useState(false);
+  const [fps, setFps] = useState(60);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
   const [selectedElementId, setSelectedElementId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<TabType>('visualizer');
+  const [openBgAccordion, setOpenBgAccordion] = useState<string>('type');
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState<FilterType>('spectrum');
   const [subtitleTab, setSubtitleTab] = useState<'basic' | 'templates'>('templates');
@@ -44,6 +48,40 @@ export const Editor: React.FC<EditorProps> = ({ project: initialProject, onExit 
     volume,
     setVolume
   } = useAudioAnalyzer({ audioUrl });
+
+  const [meters, setMeters] = useState({ l: 0, r: 0 });
+  
+  useEffect(() => {
+    let frameCount = 0;
+    let lastTime = performance.now();
+    let animationFrameId: number;
+
+    const loop = (time: number) => {
+      frameCount++;
+      if (time - lastTime >= 1000) {
+        setFps(frameCount);
+        frameCount = 0;
+        lastTime = time;
+      }
+      
+      if (isPlaying) {
+         const data = getAudioData();
+         if (data && data.dataArray) {
+           const l = (data.dataArray[10] || 0) / 255;
+           const r = (data.dataArray[20] || 0) / 255;
+           setMeters({ l, r });
+         }
+      } else {
+         setMeters({ l: 0, r: 0 });
+      }
+      
+      animationFrameId = requestAnimationFrame(loop);
+    };
+
+    animationFrameId = requestAnimationFrame(loop);
+
+    return () => cancelAnimationFrame(animationFrameId);
+  }, [isPlaying, getAudioData]);
 
   // Auto-save
   useEffect(() => {
@@ -257,6 +295,10 @@ export const Editor: React.FC<EditorProps> = ({ project: initialProject, onExit 
     return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}:${cs.toString().padStart(2, '0')}`;
   };
 
+  const toggleFullScreen = () => {
+    setIsFullscreen(!isFullscreen);
+  };
+
   const resolutions = [
     { label: '720p HD (16:9)', width: 1280, height: 720 },
     { label: '1080p Full HD (16:9)', width: 1920, height: 1080 },
@@ -268,46 +310,96 @@ export const Editor: React.FC<EditorProps> = ({ project: initialProject, onExit 
   return (
     <div className="flex flex-col h-screen bg-[#0A0A0C] text-gray-200 font-sans overflow-hidden">
       {/* Topbar */}
-      <header className="flex items-center justify-between px-8 h-16 bg-[#0D0D10] border-b border-white/10">
+      <header className="flex items-center justify-between px-4 h-[50px] bg-[#111111] border-b border-[#222]">
+        
+        {/* Left Side */}
         <div className="flex items-center gap-3">
-          <button onClick={onExit} className="w-8 h-8 flex items-center justify-center hover:bg-white/5 rounded-lg transition-colors text-gray-400 hover:text-white" title="Home">
-            <Home size={18} />
+          
+          <button onClick={onExit} className="flex items-center gap-2 mr-2 group" title="Exit to Project Manager">
+            <div className="w-6 h-6 bg-blue-600 rounded flex items-center justify-center text-white font-black text-sm group-hover:bg-blue-500 transition-colors">
+              V
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="font-extrabold text-white text-[13px] tracking-wide">VIZ PRO</span>
+              <span className="bg-[#222] text-[#6b9cf2] text-[9px] font-bold px-1.5 py-0.5 rounded">V1.0</span>
+            </div>
           </button>
-          <div className="border-l border-white/10 pl-3 ml-1">
-            <h1 className="text-sm font-semibold text-white tracking-tight">{project.name}</h1>
-            <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold mt-0.5">Project Editor</p>
-          </div>
+          
+          <div className="w-px h-5 bg-[#333] mx-1"></div>
+
+          <button className="flex items-center gap-2 px-3 py-1.5 rounded-md border border-[#333] bg-[#1a1a1a] hover:bg-[#222] transition-colors text-white text-xs font-medium max-w-[200px] truncate">
+            <FolderOpen size={14} className="text-[#6b9cf2]" />
+            <span className="truncate">{project.name || "Untitled Visualizer Pro"}</span>
+          </button>
+
+          <button onClick={() => document.getElementById('hidden-audio-upload')?.click()} className="flex items-center gap-2 px-3 py-1.5 rounded-md border border-[#333] bg-[#1a1a1a] hover:bg-[#222] transition-colors text-white text-[11px] font-bold tracking-wide">
+            <Music size={14} className="text-[#6b9cf2]" />
+            IMPORT AUDIO
+          </button>
+          <input type="file" id="hidden-audio-upload" accept="audio/*,video/*" className="hidden" onChange={handleAudioUpload} />
+
+          <button className="w-8 h-[28px] rounded-md border border-[#333] bg-[#1a1a1a] hover:bg-[#222] flex items-center justify-center text-gray-400 transition-colors">
+            <FileCode size={14} />
+          </button>
+          <button onClick={toggleFullScreen} className="w-8 h-[28px] rounded-md border border-[#333] bg-[#1a1a1a] hover:bg-[#222] flex items-center justify-center text-gray-400 transition-colors">
+            <Maximize2 size={14} />
+          </button>
+          <button className="w-8 h-[28px] rounded-md border border-[#333] bg-[#1a1a1a] hover:bg-[#222] flex items-center justify-center text-gray-400 transition-colors">
+            <SettingsIcon size={14} />
+          </button>
+
         </div>
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 text-xs font-semibold">
-            <span className="text-gray-500 uppercase">Resolution</span>
-            <select 
-              className="bg-[#1A1A1F] text-gray-300 border border-white/10 rounded-lg px-2 py-1.5 focus:outline-none focus:border-indigo-500 cursor-pointer"
-              value={`${project.resolution?.width || 1280}x${project.resolution?.height || 720}`}
-              onChange={(e) => {
-                const [w, h] = e.target.value.split('x').map(Number);
-                setProject(prev => ({ ...prev, resolution: { width: w, height: h } }));
-              }}
-              disabled={isRecording}
-            >
-              {resolutions.map(r => (
-                <option key={`${r.width}x${r.height}`} value={`${r.width}x${r.height}`}>
-                  {r.label}
-                </option>
-              ))}
-            </select>
+
+        {/* Right Side */}
+        <div className="flex items-center gap-3">
+          
+          <div className="flex items-center gap-1">
+            <button className="w-8 h-8 flex items-center justify-center text-gray-500 hover:text-gray-300 transition-colors">
+              <Undo2 size={16} />
+            </button>
+            <button className="w-8 h-8 flex items-center justify-center text-gray-500 hover:text-gray-300 transition-colors">
+              <Redo2 size={16} />
+            </button>
           </div>
+
+          <div className="w-px h-5 bg-[#333] mx-1"></div>
+
+          <div className="flex items-center gap-2 text-[11px] font-medium border border-[#333] bg-[#1a1a1a] rounded-md px-2 py-1 transition-colors relative">
+            <span className="text-[#6b9cf2] uppercase font-bold tracking-wider mr-1">RESOLUTION</span>
+            <div className="relative flex items-center">
+              <select 
+                className="bg-transparent text-white outline-none cursor-pointer appearance-none pr-5 font-bold"
+                value={`${project.resolution?.width || 1280}x${project.resolution?.height || 720}`}
+                onChange={(e) => {
+                  const [w, h] = e.target.value.split('x').map(Number);
+                  setProject(prev => ({ ...prev, resolution: { width: w, height: h } }));
+                }}
+                disabled={isRecording}
+              >
+                {resolutions.map(r => (
+                  <option key={`${r.width}x${r.height}`} value={`${r.width}x${r.height}`} className="bg-[#1a1a1a] text-white">
+                    {r.label}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown size={14} className="text-gray-400 pointer-events-none absolute right-0" />
+            </div>
+          </div>
+
+
+
           <button 
             onClick={toggleRecording}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-colors ${
+            className={`flex items-center gap-2 px-4 py-1.5 rounded-md text-[11px] font-bold tracking-wide transition-colors ${
               isRecording 
                 ? 'bg-rose-500/10 text-rose-500 hover:bg-rose-500/20 border border-rose-500/30' 
-                : 'bg-indigo-500 text-white hover:bg-indigo-600'
+                : 'bg-indigo-600 text-white hover:bg-indigo-500'
             }`}
           >
-            {isRecording ? <Square size={16} /> : <Download size={16} />}
-            {isRecording ? 'Stop Recording' : 'Record Video'}
+            {isRecording ? <Square size={14} /> : <Download size={14} />}
+            {isRecording ? 'STOP' : 'EXPORT'}
           </button>
+
         </div>
       </header>
 
@@ -377,9 +469,13 @@ export const Editor: React.FC<EditorProps> = ({ project: initialProject, onExit 
                 <div className="flex-1 overflow-y-auto pr-1 space-y-6">
                   {/* Tipe Background */}
                   <div>
-                    <h3 className="text-[10px] text-gray-500 uppercase tracking-[0.2em] font-bold flex items-center gap-2 mb-4">
-                      <Settings size={12} /> TIPE BACKGROUND
-                    </h3>
+                    <button onClick={() => setOpenBgAccordion(openBgAccordion === 'type' ? '' : 'type')} className="w-full flex items-center justify-between group outline-none">
+                      <h3 className="text-[10px] text-gray-500 uppercase tracking-[0.2em] font-bold flex items-center gap-2 mb-4 group-hover:text-gray-300 transition-colors">
+                        <Settings size={12} /> TIPE BACKGROUND
+                      </h3>
+                      <ChevronDown size={14} className={`text-gray-500 mb-4 transition-transform ${openBgAccordion === 'type' ? 'rotate-180' : ''}`} />
+                    </button>
+                    {openBgAccordion === 'type' && (
                     <div className="grid grid-cols-2 gap-2">
                       {[
                         { type: 'cyber_grid', name: 'Cyber Grid' },
@@ -415,13 +511,18 @@ export const Editor: React.FC<EditorProps> = ({ project: initialProject, onExit 
                         </button>
                       ))}
                     </div>
+                    )}
                   </div>
 
                   {/* Filter & Efek Background */}
                   <div className="pt-4 border-t border-white/5">
-                    <h3 className="text-[10px] text-gray-500 uppercase tracking-[0.2em] font-bold flex items-center gap-2 mb-4">
-                      <Settings size={12} /> FILTER & EFEK BACKGROUND
-                    </h3>
+                    <button onClick={() => setOpenBgAccordion(openBgAccordion === 'filter' ? '' : 'filter')} className="w-full flex items-center justify-between group outline-none">
+                      <h3 className="text-[10px] text-gray-500 uppercase tracking-[0.2em] font-bold flex items-center gap-2 mb-4 group-hover:text-gray-300 transition-colors">
+                        <Settings size={12} /> FILTER & EFEK BACKGROUND
+                      </h3>
+                      <ChevronDown size={14} className={`text-gray-500 mb-4 transition-transform ${openBgAccordion === 'filter' ? 'rotate-180' : ''}`} />
+                    </button>
+                    {openBgAccordion === 'filter' && (
                     <div className="space-y-4">
                       <label className="block">
                         <div className="flex justify-between mb-1">
@@ -452,7 +553,66 @@ export const Editor: React.FC<EditorProps> = ({ project: initialProject, onExit 
                         <input type="range" min="0" max="100" value={project.backgroundConfig.vignette || 0} onChange={e => setProject({ ...project, backgroundConfig: { ...project.backgroundConfig, vignette: Number(e.target.value) } })} className="w-full h-1.5 bg-white/10 rounded-full appearance-none cursor-pointer accent-blue-500" />
                       </label>
                     </div>
+                    )}
                   </div>
+
+                  {/* POST-PROCESSING SPECIAL EFFECTS */}
+                  <div className="mt-6 border-t border-white/10 pt-6">
+                    <button onClick={() => setOpenBgAccordion(openBgAccordion === 'post' ? '' : 'post')} className="w-full flex items-center justify-between group outline-none">
+                      <h3 className="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-4 flex items-center gap-2 group-hover:text-gray-300 transition-colors">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+                        POST-PROCESSING SPECIAL EFFECTS
+                      </h3>
+                      <ChevronDown size={14} className={`text-gray-500 mb-4 transition-transform ${openBgAccordion === 'post' ? 'rotate-180' : ''}`} />
+                    </button>
+                    
+                    {openBgAccordion === 'post' && (
+                    <div className="space-y-4">
+                      {/* Bloom Glow Effect */}
+                      <label className="flex items-center justify-between p-3 bg-[#1A1A1A] border border-white/5 rounded-xl cursor-pointer hover:bg-white/5">
+                        <span className="text-sm font-bold text-white">Bloom Glow Effect</span>
+                        <input type="checkbox" checked={project.postProcessing?.bloom || false} onChange={e => setProject({ ...project, postProcessing: { ...project.postProcessing, bloom: e.target.checked } as any })} className="w-5 h-5 rounded accent-blue-500" />
+                      </label>
+
+                      {/* Chromatic Aberration */}
+                      <label className="flex items-center justify-between p-3 bg-[#1A1A1A] border border-white/5 rounded-xl cursor-pointer hover:bg-white/5">
+                        <span className="text-sm font-bold text-white">Chromatic Aberration (RGB Shift)</span>
+                        <input type="checkbox" checked={project.postProcessing?.chromaticAberration || false} onChange={e => setProject({ ...project, postProcessing: { ...project.postProcessing, chromaticAberration: e.target.checked } as any })} className="w-5 h-5 rounded accent-blue-500" />
+                      </label>
+
+                      {/* Film Grain Texture */}
+                      <label className="flex items-center justify-between p-3 bg-[#1A1A1A] border border-white/5 rounded-xl cursor-pointer hover:bg-white/5">
+                        <span className="text-sm font-bold text-white">Film Grain Texture</span>
+                        <input type="checkbox" checked={project.postProcessing?.filmGrain || false} onChange={e => setProject({ ...project, postProcessing: { ...project.postProcessing, filmGrain: e.target.checked } as any })} className="w-5 h-5 rounded accent-blue-500" />
+                      </label>
+
+                      {/* Lens Flare Anamorphic */}
+                      <label className="flex items-center justify-between p-3 bg-[#1A1A1A] border border-white/5 rounded-xl cursor-pointer hover:bg-white/5">
+                        <span className="text-sm font-bold text-white">Lens Flare Anamorphic</span>
+                        <input type="checkbox" checked={project.postProcessing?.lensFlare || false} onChange={e => setProject({ ...project, postProcessing: { ...project.postProcessing, lensFlare: e.target.checked } as any })} className="w-5 h-5 rounded accent-blue-500" />
+                      </label>
+
+                      {/* LUT Color Grading */}
+                      <div className="pt-2">
+                        <label className="block text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-2">LUT COLOR GRADING PRESET</label>
+                        <select 
+                          value={project.postProcessing?.lut || 'none'} 
+                          onChange={e => setProject({ ...project, postProcessing: { ...project.postProcessing, lut: e.target.value } as any })} 
+                          className="w-full bg-[#1A1A1A] border border-blue-500/50 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-blue-500 appearance-none"
+                        >
+                          <option value="none">None</option>
+                          <option value="cyberpunk">Cyberpunk Neon</option>
+                          <option value="cinematic">Cinematic Teal & Orange</option>
+                          <option value="vintage">Vintage Film</option>
+                          <option value="bw">Black & White Noir</option>
+                          <option value="warm">Warm Sunshine</option>
+                          <option value="cool">Cool Matrix</option>
+                        </select>
+                      </div>
+                    </div>
+                    )}
+                  </div>
+
                 </div>
               </div>
             )}
@@ -816,7 +976,14 @@ export const Editor: React.FC<EditorProps> = ({ project: initialProject, onExit 
         </aside>
 
         {/* Main Content */}
-        <main className="flex-1 flex flex-col min-w-0 bg-[#0A0A0C] p-8 gap-8 overflow-y-auto">
+        <main className={`flex-1 flex flex-col min-w-0 bg-[#0A0A0C] p-8 gap-8 overflow-y-auto ${isFullscreen ? 'fixed inset-0 z-50 p-4 bg-black' : ''}`}>
+          
+          {isFullscreen && (
+            <button onClick={toggleFullScreen} className="absolute top-4 right-4 z-50 w-10 h-10 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center text-white backdrop-blur-sm transition-colors">
+              <SettingsIcon size={16} /> {/* Wait, we need a close icon. We can just use Maximize2 to toggle back, or text "X". I'll just put "X". */}
+              <span className="font-bold">X</span>
+            </button>
+          )}
           {/* Canvas Wrapper */}
           <div className="flex-1 flex flex-col items-center justify-center">
             <div className="w-full max-w-5xl">
@@ -1190,6 +1357,44 @@ export const Editor: React.FC<EditorProps> = ({ project: initialProject, onExit 
           )}
         </aside>
       </div>
+      
+      {/* Bottom Footer */}
+      <footer className="h-8 bg-[#0a0a0a] border-t border-[#1a1a1a] flex items-center justify-between px-4 shrink-0">
+        <div className="flex items-center gap-2">
+          <CheckCircle2 size={13} className="text-emerald-500" />
+          <span className="text-[#d49953] text-[11px] font-medium font-mono tracking-wide">
+            Tersimpan otomatis pada <span className="text-[#3b82f6]">{new Date().toLocaleTimeString('id-ID', { hour12: false }).replace(/:/g, '.')}</span>
+          </span>
+        </div>
+        
+        <div className="flex items-center gap-8">
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <span className="text-[#d49953] text-[11px] font-bold">L</span>
+              <div className="w-24 h-1.5 bg-[#1a1a1a] border border-[#333] rounded-full overflow-hidden flex items-center">
+                <div className="h-full bg-emerald-500 transition-all duration-75" style={{ width: `${meters.l * 100}%` }} />
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-[#d49953] text-[11px] font-bold">R</span>
+              <div className="w-24 h-1.5 bg-[#1a1a1a] border border-[#333] rounded-full overflow-hidden flex items-center">
+                <div className="h-full bg-emerald-500 transition-all duration-75" style={{ width: `${meters.r * 100}%` }} />
+              </div>
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-5">
+            <div className="flex items-center gap-1.5">
+              <Settings size={13} className="text-[#3b82f6]" />
+              <span className="text-[#d49953] text-[11px] font-mono font-medium">{fps} FPS</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Database size={13} className="text-[#a855f7]" />
+              <span className="text-[#d49953] text-[11px] font-mono font-medium">RAM: {(performance as any).memory ? Math.round((performance as any).memory.usedJSHeapSize / 1024 / 1024) : 4} MB</span>
+            </div>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 };

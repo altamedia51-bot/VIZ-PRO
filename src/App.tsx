@@ -5,6 +5,7 @@
 
 import React, { useState } from 'react';
 import { ProjectManager } from './components/ProjectManager';
+import { PostProcessingFilters } from './components/PostProcessingFilters';
 import { Editor } from './components/Editor';
 import { Project } from './types';
 
@@ -13,17 +14,23 @@ export default function App() {
 
   if (activeProject) {
     return (
-      <Editor 
-        project={activeProject} 
-        onExit={() => setActiveProject(null)} 
-      />
+      <>
+        <PostProcessingFilters />
+        <Editor 
+          project={activeProject} 
+          onExit={() => setActiveProject(null)} 
+        />
+      </>
     );
   }
 
   return (
-    <ProjectManager 
-      onSelectProject={(project) => setActiveProject(project)} 
-    />
+    <>
+      <PostProcessingFilters />
+      <ProjectManager 
+        onSelectProject={(project) => setActiveProject(project)} 
+      />
+    </>
   );
 }
 
