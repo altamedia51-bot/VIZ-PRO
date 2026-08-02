@@ -837,7 +837,7 @@ export const CanvasRenderer = forwardRef<CanvasRendererRef, CanvasRendererProps>
           }
           else if (el.type === 'single_sine') {
              ctx.strokeStyle = getStyle(el, el.x - el.width / 2, el.y - el.height / 2, el.x + el.width / 2, el.y + el.height / 2);
-             const time = performance.now() * 0.005; // faster movement
+             const time = performance.now() * 0.0015; // Slower movement
              
              ctx.beginPath();
              let x = el.x - el.width / 2;
@@ -845,7 +845,7 @@ export const CanvasRenderer = forwardRef<CanvasRendererRef, CanvasRendererProps>
              ctx.globalAlpha = el.opacity;
              
              // Base amplitude if no audio
-             const baseAmp = 5;
+             const baseAmp = 2;
              
              const points = Math.floor(el.width / 5);
              const sliceWidth = el.width / points;
@@ -860,7 +860,7 @@ export const CanvasRenderer = forwardRef<CanvasRendererRef, CanvasRendererProps>
                  freqVal = freqData[freqIdx] || 0;
                }
                
-               const amp = baseAmp + (freqVal / 255) * (el.height / 2);
+               const amp = baseAmp + (freqVal / 255) * (el.height / 4); // Smaller amplitude
                
                const y = el.y + Math.sin(phase) * amp;
                if (i === 0) ctx.moveTo(x, y);
