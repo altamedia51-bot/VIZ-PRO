@@ -344,9 +344,6 @@ export const Editor: React.FC<EditorProps> = ({ project: initialProject, onExit 
           <button onClick={toggleFullScreen} className="w-8 h-[28px] rounded-md border border-[#333] bg-[#1a1a1a] hover:bg-[#222] flex items-center justify-center text-gray-400 transition-colors">
             <Maximize2 size={14} />
           </button>
-          <button className="w-8 h-[28px] rounded-md border border-[#333] bg-[#1a1a1a] hover:bg-[#222] flex items-center justify-center text-gray-400 transition-colors">
-            <SettingsIcon size={14} />
-          </button>
 
         </div>
 
@@ -982,7 +979,6 @@ export const Editor: React.FC<EditorProps> = ({ project: initialProject, onExit 
           
           {isFullscreen && (
             <button onClick={toggleFullScreen} className="absolute top-4 right-4 z-50 w-10 h-10 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center text-white backdrop-blur-sm transition-colors">
-              <SettingsIcon size={16} /> {/* Wait, we need a close icon. We can just use Maximize2 to toggle back, or text "X". I'll just put "X". */}
               <span className="font-bold">X</span>
             </button>
           )}
