@@ -87,7 +87,7 @@ export const CanvasRenderer = forwardRef<CanvasRendererRef, CanvasRendererProps>
         const totalWidth = 64 * (el.barWidth + el.barSpacing) * elScale;
         const h = el.height * elScale;
         hit = x >= el.x - totalWidth / 2 && x <= el.x + totalWidth / 2 && y >= el.y - h / 2 && y <= el.y + h / 2;
-      } else if (el.type === 'waveform' || el.type === 'smooth_curve' || el.type === 'multi_sine' || el.type === 'flames') {
+      } else if (el.type === 'waveform' || el.type === 'smooth_curve' || el.type === 'multi_sine' || el.type === 'single_sine' || el.type === 'flames') {
         const w = el.width * elScale;
         const h = el.height * elScale;
         hit = x >= el.x - w / 2 && x <= el.x + w / 2 && y >= el.y - h / 2 && y <= el.y + h / 2;
@@ -834,6 +834,40 @@ export const CanvasRenderer = forwardRef<CanvasRendererRef, CanvasRendererProps>
                }
                ctx.stroke();
              }
+          }
+          else if (el.type === 'single_sine') {
+             ctx.strokeStyle = getStyle(el, el.x - el.width / 2, el.y - el.height / 2, el.x + el.width / 2, el.y + el.height / 2);
+             const time = performance.now() * 0.005; // faster movement
+             
+             ctx.beginPath();
+             let x = el.x - el.width / 2;
+             ctx.lineWidth = el.lineWidth || 2;
+             ctx.globalAlpha = el.opacity;
+             
+             // Base amplitude if no audio
+             const baseAmp = 5;
+             
+             const points = Math.floor(el.width / 5);
+             const sliceWidth = el.width / points;
+             
+             for (let i = 0; i <= points; i++) {
+               const phase = (i * 0.05) - time; // wave traveling
+               
+               // Map i to frequency data index
+               let freqVal = 0;
+               if (freqData.length > 0) {
+                 const freqIdx = Math.floor((i / points) * (freqData.length / 2)); 
+                 freqVal = freqData[freqIdx] || 0;
+               }
+               
+               const amp = baseAmp + (freqVal / 255) * (el.height / 2);
+               
+               const y = el.y + Math.sin(phase) * amp;
+               if (i === 0) ctx.moveTo(x, y);
+               else ctx.lineTo(x, y);
+               x += sliceWidth;
+             }
+             ctx.stroke();
           }
           else if (el.type === 'spiral_galaxy') {
             const time = performance.now() * 0.0005;

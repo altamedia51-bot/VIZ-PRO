@@ -29,7 +29,7 @@ export interface Project {
   subtitles?: Subtitle[];
 }
 
-export type ElementType = 'bars' | 'circle' | 'text' | 'waveform' | 'particles' | 'orbs' | 'neon_grid' | 'double_circle' | 'smooth_curve' | 'circular_spectrum' | 'symmetrical_mirror' | 'bass_pulse' | 'multi_sine' | 'spiral_galaxy' | 'flames' | 'rain' | 'triangle_spectrum' | 'diamond_spectrum' | 'glowing_ring' | 'mirrored_bars' | 'subtitle' | 'image';
+export type ElementType = 'bars' | 'circle' | 'text' | 'waveform' | 'particles' | 'orbs' | 'neon_grid' | 'double_circle' | 'smooth_curve' | 'circular_spectrum' | 'symmetrical_mirror' | 'bass_pulse' | 'multi_sine' | 'single_sine' | 'spiral_galaxy' | 'flames' | 'rain' | 'triangle_spectrum' | 'diamond_spectrum' | 'glowing_ring' | 'mirrored_bars' | 'subtitle' | 'image';
 
 export interface BaseElement {
   id: string;

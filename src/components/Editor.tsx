@@ -162,7 +162,7 @@ export const Editor: React.FC<EditorProps> = ({ project: initialProject, onExit 
       newEl.barSpacing = 2;
     } else if (type === 'bass_pulse') {
       newEl.radius = 100;
-    } else if (type === 'multi_sine') {
+    } else if (type === 'multi_sine' || type === 'single_sine') {
       newEl.width = 800;
       newEl.height = 200;
       newEl.lines = 3;
@@ -587,11 +587,51 @@ export const Editor: React.FC<EditorProps> = ({ project: initialProject, onExit 
                               </button>
                             </div>
                             <select value={el.fontFamily} onChange={e => updateElement(el.id, { fontFamily: e.target.value })} className="w-full bg-[#1A1A1A] border border-white/5 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-blue-500/50 appearance-none">
-                              <option value="Montserrat">Montserrat (sans-serif)</option>
-                              <option value="Inter">Inter (sans-serif)</option>
-                              <option value="Roboto">Roboto (sans-serif)</option>
-                              <option value="Arial">Arial (sans-serif)</option>
-                              <option value="Courier New">Courier New (monospace)</option>
+                              <optgroup label="Latin Fonts">
+                                <option value="Montserrat">Montserrat</option>
+                                <option value="Inter">Inter</option>
+                                <option value="Roboto">Roboto</option>
+                                <option value="Open Sans">Open Sans</option>
+                                <option value="Poppins">Poppins</option>
+                                <option value="Lato">Lato</option>
+                                <option value="Oswald">Oswald</option>
+                                <option value="Playfair Display">Playfair Display</option>
+                                <option value="Nunito">Nunito</option>
+                                <option value="Raleway">Raleway</option>
+                                <option value="Ubuntu">Ubuntu</option>
+                                <option value="Merriweather">Merriweather</option>
+                                <option value="PT Sans">PT Sans</option>
+                                <option value="Noto Sans">Noto Sans</option>
+                                <option value="Quicksand">Quicksand</option>
+                                <option value="Rubik">Rubik</option>
+                                <option value="Work Sans">Work Sans</option>
+                                <option value="Fira Sans">Fira Sans</option>
+                                <option value="Dancing Script">Dancing Script</option>
+                                <option value="Pacifico">Pacifico</option>
+                                <option value="Arial">Arial</option>
+                                <option value="Courier New">Courier New</option>
+                              </optgroup>
+                              <optgroup label="Arabic Fonts">
+                                <option value="Cairo">Cairo</option>
+                                <option value="Tajawal">Tajawal</option>
+                                <option value="Amiri">Amiri</option>
+                                <option value="Almarai">Almarai</option>
+                                <option value="Scheherazade New">Scheherazade New</option>
+                                <option value="Lateef">Lateef</option>
+                                <option value="Changa">Changa</option>
+                                <option value="Reem Kufi">Reem Kufi</option>
+                                <option value="Lalezar">Lalezar</option>
+                                <option value="Noto Kufi Arabic">Noto Kufi Arabic</option>
+                                <option value="Noto Naskh Arabic">Noto Naskh Arabic</option>
+                                <option value="El Messiri">El Messiri</option>
+                                <option value="Lemonada">Lemonada</option>
+                                <option value="Markazi Text">Markazi Text</option>
+                                <option value="Aref Ruqaa">Aref Ruqaa</option>
+                                <option value="Mada">Mada</option>
+                                <option value="Harmattan">Harmattan</option>
+                                <option value="Katibeh">Katibeh</option>
+                                <option value="Rakkas">Rakkas</option>
+                              </optgroup>
                             </select>
                           </div>
 
@@ -754,6 +794,7 @@ export const Editor: React.FC<EditorProps> = ({ project: initialProject, onExit 
                     { type: 'particles', name: 'Particle Explosion', category: 'particles', label: 'PARTICLES' },
                     { type: 'spiral_galaxy', name: 'Spiral Galaxy', category: 'particles', label: 'PARTICLES' },
                     { type: 'multi_sine', name: 'Multi Sine Waves', category: 'waves', label: 'WAVES' },
+                    { type: 'single_sine', name: 'Single Sine Wave', category: 'waves', label: 'WAVES' },
                     { type: 'flames', name: 'Flames Column', category: 'elements', label: 'ELEMENTS' },
                     { type: 'rain', name: 'Rain Ripples', category: 'elements', label: 'ELEMENTS' },
                   ] as const)
@@ -1094,7 +1135,7 @@ export const Editor: React.FC<EditorProps> = ({ project: initialProject, onExit 
                     </label>
                   )}
 
-                  {(el.type === 'smooth_curve' || el.type === 'symmetrical_mirror' || el.type === 'multi_sine' || el.type === 'flames' || el.type === 'waveform' || el.type === 'mirrored_bars') && (
+                  {(el.type === 'smooth_curve' || el.type === 'symmetrical_mirror' || el.type === 'multi_sine' || el.type === 'single_sine' || el.type === 'flames' || el.type === 'waveform' || el.type === 'mirrored_bars') && (
                     <label className="block">
                       <div className="flex justify-between mb-1">
                         <span className="text-[10px] text-gray-500">Tinggi Max ({el.height}px)</span>
