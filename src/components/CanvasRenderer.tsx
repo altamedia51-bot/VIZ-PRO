@@ -546,6 +546,64 @@ export const CanvasRenderer = forwardRef<CanvasRendererRef, CanvasRendererProps>
                   ctx.fillText(line, 0, lineY);
                   ctx.shadowOffsetX = 0;
                   ctx.shadowOffsetY = 0;
+                } else if (el.templateStyle === 'highlight_pop') {
+                  // highlight_pop: active word is larger, tilted, colored. Others are white.
+                  const words = line.split(' ');
+                  const totalWords = words.length;
+                  const activeWordIndex = Math.min(totalWords - 1, Math.floor(progress * totalWords));
+                  
+                  let currentX = 0;
+                  ctx.font = `italic 900 ${el.fontSize}px ${el.fontFamily}`;
+                  ctx.textAlign = 'left';
+                  
+                  const totalWidth = ctx.measureText(line).width;
+                  let startX = -totalWidth / 2;
+                  
+                  words.forEach((word, wIdx) => {
+                    const wordWidth = ctx.measureText(word).width;
+                    const spaceWidth = ctx.measureText(' ').width;
+                    
+                    ctx.shadowColor = '#000000';
+                    ctx.shadowBlur = 0;
+                    ctx.shadowOffsetX = 2;
+                    ctx.shadowOffsetY = 2;
+                    
+                    // thick stroke
+                    ctx.lineWidth = el.fontSize * 0.15;
+                    ctx.strokeStyle = '#000000';
+                    
+                    if (wIdx === activeWordIndex) {
+                      ctx.fillStyle = el.color || '#FFFF00'; // Default yellow
+                      
+                      ctx.save();
+                      // translate to center of word
+                      ctx.translate(startX + wordWidth/2, lineY);
+                      ctx.rotate(-4 * Math.PI / 180); // slight tilt
+                      ctx.scale(1.2, 1.2);
+                      
+                      // Draw stroke and fill
+                      ctx.strokeText(word, -wordWidth/2, 0);
+                      
+                      ctx.shadowOffsetX = 0;
+                      ctx.shadowOffsetY = 0;
+                      ctx.fillText(word, -wordWidth/2, 0);
+                      ctx.restore();
+                    } else {
+                      ctx.fillStyle = '#FFFFFF';
+                      
+                      ctx.save();
+                      ctx.translate(startX + wordWidth/2, lineY);
+                      
+                      ctx.strokeText(word, -wordWidth/2, 0);
+                      
+                      ctx.shadowOffsetX = 0;
+                      ctx.shadowOffsetY = 0;
+                      ctx.fillText(word, -wordWidth/2, 0);
+                      ctx.restore();
+                    }
+                    startX += wordWidth + spaceWidth;
+                  });
+                  ctx.textAlign = 'center'; // restore
                 } else if (el.templateStyle === 'tiktok_karaoke') {
                   // Word by word highlighting
                   const words = line.split(' ');
@@ -667,6 +725,77 @@ export const CanvasRenderer = forwardRef<CanvasRendererRef, CanvasRendererProps>
               
               ctx.shadowBlur = 0;
             }
+          }
+          
+          else if (el.type === 'digital_matrix_rain') {
+             const fontSize = 16;
+             const columns = Math.floor(canvas.width / fontSize);
+             
+             if (!(window as any).matrixRainDrops) {
+                (window as any).matrixRainDrops = [];
+                for(let x = 0; x < columns; x++) {
+                   (window as any).matrixRainDrops[x] = 1;
+                }
+             }
+             
+             const drops = (window as any).matrixRainDrops;
+             
+             if (!(window as any).matrixCanvas) {
+                const mCanvas = document.createElement('canvas');
+                mCanvas.width = canvas.width;
+                mCanvas.height = canvas.height;
+                (window as any).matrixCanvas = mCanvas;
+             }
+             
+             const mCanvas = (window as any).matrixCanvas;
+             if (mCanvas.width !== canvas.width || mCanvas.height !== canvas.height) {
+                mCanvas.width = canvas.width;
+                mCanvas.height = canvas.height;
+                for(let x = 0; x < columns; x++) {
+                   drops[x] = Math.random() * -100;
+                }
+             }
+             
+             const mCtx = mCanvas.getContext('2d');
+             if (mCtx) {
+                 const audioPower = (freqData[2] || 0) / 255;
+                 
+                 mCtx.globalCompositeOperation = 'destination-out';
+                 mCtx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+                 mCtx.fillRect(0, 0, mCanvas.width, mCanvas.height);
+                 mCtx.globalCompositeOperation = 'source-over';
+                 
+                 mCtx.fillStyle = el.color || '#0F0';
+                 mCtx.font = fontSize + 'px monospace';
+                 
+                 const chars = 'ｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜﾝ';
+                 
+                 const speed = ((el as any).speed || 1) * (1 + audioPower);
+                 const density = (el as any).density || 20;
+                 
+                 for (let i = 0; i < drops.length; i++) {
+                    if (i % Math.max(1, Math.floor(50 / density)) !== 0) continue;
+                    
+                    const text = chars.charAt(Math.floor(Math.random() * chars.length));
+                    
+                    mCtx.shadowBlur = 10;
+                    mCtx.shadowColor = el.color || '#0F0';
+                    
+                    mCtx.fillText(text, i * fontSize, drops[i] * fontSize);
+                    mCtx.shadowBlur = 0;
+                    
+                    if (drops[i] * fontSize > mCanvas.height && Math.random() > 0.975) {
+                       drops[i] = 0;
+                    }
+                    drops[i] += speed;
+                 }
+                 
+                 ctx.save();
+                 ctx.globalAlpha = el.opacity ?? 1;
+                 // Draw relative to el.x and el.y so it centers on the element position
+                 ctx.drawImage(mCanvas, el.x - mCanvas.width/2, el.y - mCanvas.height/2);
+                 ctx.restore();
+             }
           }
           else if (el.type === 'neon_grid') {
              const time = performance.now() * 0.001;
@@ -908,6 +1037,96 @@ export const CanvasRenderer = forwardRef<CanvasRendererRef, CanvasRendererProps>
                
                startX += barWidth;
              }
+          }
+          else if (el.type === 'color_pixel') {
+             const time = performance.now() * 0.001;
+             const averageFreq = freqData.length ? freqData.reduce((a,b)=>a+b,0) / freqData.length : 0;
+             const intensity = averageFreq / 255;
+             
+             if (!(window as any).colorPixels) {
+                (window as any).colorPixels = [];
+             }
+             const pixels = (window as any).colorPixels;
+             
+             const blur = el.radius || 15;
+             const amount = el.density || 70;
+             const baseSize = el.lineWidth || 11;
+             const speed = el.speed || 31;
+             
+             // Base color
+             const baseColor = el.color || '#ff9900';
+             const useGradient = el.useGradient;
+             const color2 = el.color2 || '#00ffff';
+             
+             // Dynamic amount calculation based on audio intensity and the Amount slider
+             // Higher amount slider = more pixels spawned per frame
+             const spawnRate = (amount / 10) * (1 + intensity * 2);
+             const numToSpawn = Math.floor(spawnRate) + (Math.random() < (spawnRate % 1) ? 1 : 0);
+             
+             for (let i = 0; i < numToSpawn; i++) {
+                 const isGlow = Math.random() > 0.8;
+                 pixels.push({
+                     x: el.x - el.width/2 + Math.random() * el.width,
+                     y: el.y - el.height/2 + Math.random() * el.height,
+                     vx: (Math.random() - 0.5) * (speed / 15),
+                     vy: (Math.random() - 0.5) * (speed / 15) - (intensity * (speed / 10)), 
+                     life: 1.0 + Math.random(),
+                     maxLife: 2.0,
+                     size: baseSize * (0.5 + Math.random()),
+                     isGlow: isGlow,
+                     color: isGlow ? '#ffffff' : (useGradient && Math.random() > 0.5 ? color2 : baseColor)
+                 });
+             }
+             
+             ctx.save();
+             // 'overlay' or 'color-dodge' blends the white/colored pixels nicely with the background image
+             // giving that "picking up the color from underneath" feel if we use white with overlay.
+             ctx.globalCompositeOperation = 'overlay'; 
+             
+             for (let i = pixels.length - 1; i >= 0; i--) {
+                 const p = pixels[i];
+                 p.x += p.vx;
+                 p.y += p.vy;
+                 p.life -= 0.02 * (speed / 15);
+                 
+                 if (p.life <= 0) {
+                     pixels.splice(i, 1);
+                     continue;
+                 }
+                 
+                 const alpha = (p.life / p.maxLife) * (el.opacity ?? 1);
+                 ctx.fillStyle = p.color;
+                 ctx.globalAlpha = alpha;
+                 
+                 // Apply glow (blur) from settings
+                 if (p.isGlow) {
+                     ctx.shadowBlur = blur;
+                     ctx.shadowColor = p.color;
+                 } else {
+                     ctx.shadowBlur = blur * 0.3;
+                     ctx.shadowColor = p.color;
+                 }
+                 
+                 // Pixelated appearance (drawing squares)
+                 // We snap to a grid to make it look like a mosaic
+                 const gridSnap = baseSize;
+                 const snapX = Math.floor(p.x / gridSnap) * gridSnap;
+                 const snapY = Math.floor(p.y / gridSnap) * gridSnap;
+                 
+                 ctx.fillRect(snapX, snapY, gridSnap - 1, gridSnap - 1);
+                 
+                 // Cross shape for bright pixels
+                 if (p.isGlow && p.size > baseSize) {
+                    const cx = snapX + gridSnap/2;
+                    const cy = snapY + gridSnap/2;
+                    ctx.globalCompositeOperation = 'screen'; // Make the cross even brighter
+                    ctx.fillRect(Math.floor(cx - gridSnap), Math.floor(cy - gridSnap/4), gridSnap * 2, gridSnap/2);
+                    ctx.fillRect(Math.floor(cx - gridSnap/4), Math.floor(cy - gridSnap), gridSnap/2, gridSnap * 2);
+                    ctx.globalCompositeOperation = 'overlay'; // Restore
+                 }
+             }
+             
+             ctx.restore();
           }
           else if (el.type === 'rain') {
              const time = performance.now() * 0.05 * el.speed;

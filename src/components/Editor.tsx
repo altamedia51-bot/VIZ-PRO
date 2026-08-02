@@ -950,6 +950,7 @@ export const Editor: React.FC<EditorProps> = ({ project: initialProject, onExit 
                     { type: 'diamond_spectrum', name: 'Diamond Spectrum', category: 'shapes', label: 'SHAPE' },
                     { type: 'glowing_ring', name: 'Glowing Ring', category: 'glow', label: 'GLOW' },
                     { type: 'neon_grid', name: 'Neon Synthwave', category: 'cyber', label: 'CYBER' },
+                    { type: 'digital_matrix_rain', name: 'Digital Matrix Rain', category: 'cyber', label: 'CYBER' },
                     { type: 'orbs', name: 'Frequency Orbs', category: 'cyber', label: 'ORBS & GLOW' },
                     { type: 'particles', name: 'Particle Explosion', category: 'particles', label: 'PARTICLES' },
                     { type: 'spiral_galaxy', name: 'Spiral Galaxy', category: 'particles', label: 'PARTICLES' },
@@ -957,6 +958,7 @@ export const Editor: React.FC<EditorProps> = ({ project: initialProject, onExit 
                     { type: 'single_sine', name: 'Single Sine Wave', category: 'waves', label: 'WAVES' },
                     { type: 'flames', name: 'Flames Column', category: 'elements', label: 'ELEMENTS' },
                     { type: 'rain', name: 'Rain Ripples', category: 'elements', label: 'ELEMENTS' },
+                    { type: 'color_pixel', name: 'Color Pixel', category: 'elements', label: 'ELEMENTS' },
                   ] as const)
                     .filter(item => (activeFilter === 'all' || item.category === activeFilter) && item.name.toLowerCase().includes(searchQuery.toLowerCase()))
                     .map(item => (
@@ -1165,6 +1167,9 @@ export const Editor: React.FC<EditorProps> = ({ project: initialProject, onExit 
                           <button onClick={() => updateElement(el.id, { templateStyle: 'tiktok_shadow', color: '#ffffff' })} className="p-3 bg-[#1A1A1A] border border-white/5 hover:border-blue-500 rounded flex items-center justify-center min-h-[60px]">
                             <span className="text-white font-bold text-[10px]" style={{textShadow: '-2px 0px 0px #00ffff, 2px 0px 0px #ff0050'}}>TIKTOK</span>
                           </button>
+                          <button onClick={() => updateElement(el.id, { templateStyle: 'highlight_pop', color: '#FFFF00' })} className="p-3 bg-[#1A1A1A] border border-white/5 hover:border-blue-500 rounded flex items-center justify-center min-h-[60px] col-span-2">
+                            <span className="text-[#FFFF00] font-black text-sm italic" style={{textShadow: '2px 2px 0px #000000', WebkitTextStroke: '0.5px black'}}>HIGHLIGHT POP</span>
+                          </button>
                         </div>
                       </div>
                     )}
@@ -1293,6 +1298,23 @@ export const Editor: React.FC<EditorProps> = ({ project: initialProject, onExit 
                     </label>
                   )}
 
+                  {el.type === 'digital_matrix_rain' && (
+                    <>
+                      <label className="block">
+                        <div className="flex justify-between mb-1">
+                          <span className="text-[10px] text-gray-500">Kepadatan ({el.density})</span>
+                        </div>
+                        <input type="range" min="5" max="50" value={el.density || 20} onChange={e => updateElement(el.id, { density: Number(e.target.value) })} className="w-full h-1.5 bg-white/10 rounded-full appearance-none cursor-pointer accent-indigo-500" />
+                      </label>
+                      <label className="block mt-4">
+                        <div className="flex justify-between mb-1">
+                          <span className="text-[10px] text-gray-500">Kecepatan ({el.speed}x)</span>
+                        </div>
+                        <input type="range" min="0.1" max="5" step="0.1" value={el.speed || 1} onChange={e => updateElement(el.id, { speed: Number(e.target.value) })} className="w-full h-1.5 bg-white/10 rounded-full appearance-none cursor-pointer accent-indigo-500" />
+                      </label>
+                    </>
+                  )}
+
                   {(el.type === 'double_circle' || el.type === 'circular_spectrum' || el.type === 'bass_pulse' || el.type === 'spiral_galaxy' || el.type === 'triangle_spectrum' || el.type === 'diamond_spectrum' || el.type === 'glowing_ring') && (
                     <label className="block">
                       <div className="flex justify-between mb-1">
@@ -1324,6 +1346,34 @@ export const Editor: React.FC<EditorProps> = ({ project: initialProject, onExit 
                           <span className="text-[10px] text-gray-500">Kecepatan ({el.speed}x)</span>
                         </div>
                         <input type="range" min="0.1" max="5" step="0.1" value={el.speed || 1} onChange={e => updateElement(el.id, { speed: Number(e.target.value) })} className="w-full h-1.5 bg-white/10 rounded-full appearance-none cursor-pointer accent-indigo-500" />
+                      </label>
+                    </>
+                  )}
+                  {el.type === 'color_pixel' && (
+                    <>
+                      <label className="block">
+                        <div className="flex justify-between mb-1">
+                          <span className="text-[10px] text-gray-500">Blur ({el.radius || 15})</span>
+                        </div>
+                        <input type="range" min="0" max="100" value={el.radius || 15} onChange={e => updateElement(el.id, { radius: Number(e.target.value) })} className="w-full h-1.5 bg-white/10 rounded-full appearance-none cursor-pointer accent-indigo-500" />
+                      </label>
+                      <label className="block">
+                        <div className="flex justify-between mb-1">
+                          <span className="text-[10px] text-gray-500">Amount ({el.density || 70})</span>
+                        </div>
+                        <input type="range" min="10" max="200" value={el.density || 70} onChange={e => updateElement(el.id, { density: Number(e.target.value) })} className="w-full h-1.5 bg-white/10 rounded-full appearance-none cursor-pointer accent-indigo-500" />
+                      </label>
+                      <label className="block">
+                        <div className="flex justify-between mb-1">
+                          <span className="text-[10px] text-gray-500">Size ({el.lineWidth || 11})</span>
+                        </div>
+                        <input type="range" min="1" max="50" value={el.lineWidth || 11} onChange={e => updateElement(el.id, { lineWidth: Number(e.target.value) })} className="w-full h-1.5 bg-white/10 rounded-full appearance-none cursor-pointer accent-indigo-500" />
+                      </label>
+                      <label className="block">
+                        <div className="flex justify-between mb-1">
+                          <span className="text-[10px] text-gray-500">Speed ({el.speed || 31})</span>
+                        </div>
+                        <input type="range" min="1" max="100" value={el.speed || 31} onChange={e => updateElement(el.id, { speed: Number(e.target.value) })} className="w-full h-1.5 bg-white/10 rounded-full appearance-none cursor-pointer accent-indigo-500" />
                       </label>
                     </>
                   )}

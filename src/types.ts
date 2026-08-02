@@ -33,7 +33,7 @@ export interface Project {
   resolution?: { width: number; height: number };
   subtitles?: Subtitle[];
 }
-export type ElementType = 'bars' | 'circle' | 'text' | 'waveform' | 'particles' | 'orbs' | 'neon_grid' | 'double_circle' | 'smooth_curve' | 'circular_spectrum' | 'symmetrical_mirror' | 'bass_pulse' | 'multi_sine' | 'single_sine' | 'spiral_galaxy' | 'flames' | 'rain' | 'triangle_spectrum' | 'diamond_spectrum' | 'glowing_ring' | 'mirrored_bars' | 'subtitle' | 'image';
+export type ElementType = 'bars' | 'circle' | 'text' | 'waveform' | 'particles' | 'orbs' | 'neon_grid' | 'double_circle' | 'smooth_curve' | 'circular_spectrum' | 'symmetrical_mirror' | 'bass_pulse' | 'multi_sine' | 'single_sine' | 'spiral_galaxy' | 'flames' | 'rain' | 'triangle_spectrum' | 'diamond_spectrum' | 'glowing_ring' | 'mirrored_bars' | 'subtitle' | 'image' | 'digital_matrix_rain' | 'color_pixel';
 export interface BaseElement {
   id: string;
   type: ElementType;
@@ -165,8 +165,13 @@ export interface SubtitleElement extends BaseElement {
   fontSize: number;
   fontFamily: string;
   letterSpacing?: number;
-  templateStyle?: 'default' | 'bubble_yellow' | 'bubble_black' | 'neon' | 'glow_border' | 'tiktok_pop' | 'tiktok_karaoke' | 'tiktok_shadow';
+  templateStyle?: 'default' | 'bubble_yellow' | 'bubble_black' | 'neon' | 'glow_border' | 'tiktok_pop' | 'tiktok_karaoke' | 'tiktok_shadow' | 'highlight_pop';
   textCase?: 'none' | 'uppercase' | 'lowercase' | 'capitalize';
+}
+export interface DigitalMatrixRainElement extends BaseElement {
+  type: 'digital_matrix_rain';
+  density: number;
+  speed: number;
 }
 export interface ImageElement extends BaseElement {
   type: 'image';
