@@ -1095,16 +1095,38 @@ export const CanvasRenderer = forwardRef<CanvasRendererRef, CanvasRendererProps>
             ctx.globalCompositeOperation = 'overlay';
             ctx.globalAlpha = 0.08;
             
-            // Random noise approximation (fast)
-            const grainSize = 4;
-            for (let i = 0; i < canvas.width; i += grainSize) {
-              for (let j = 0; j < canvas.height; j += grainSize) {
-                if (Math.random() > 0.5) {
-                  ctx.fillStyle = '#ffffff';
-                  ctx.fillRect(i, j, grainSize, grainSize);
+            // Optimized grain: Generate once, render fast
+            // Store it on the window/canvas object to reuse across frames
+            if (!(window as any).grainCanvas) {
+              const gCanvas = document.createElement('canvas');
+              gCanvas.width = 512;
+              gCanvas.height = 512;
+              const gCtx = gCanvas.getContext('2d', { alpha: false });
+              if (gCtx) {
+                const imgData = gCtx.createImageData(512, 512);
+                const data = imgData.data;
+                for (let i = 0; i < data.length; i += 4) {
+                  const val = Math.random() * 255;
+                  data[i] = val;
+                  data[i+1] = val;
+                  data[i+2] = val;
+                  data[i+3] = 255;
                 }
+                gCtx.putImageData(imgData, 0, 0);
               }
+              (window as any).grainCanvas = gCanvas;
             }
+            
+            const gCanvas = (window as any).grainCanvas;
+            const w = canvas.width;
+            const h = canvas.height;
+            
+            ctx.fillStyle = ctx.createPattern(gCanvas, 'repeat') as CanvasPattern;
+            
+            // Randomize pattern offset to animate grain
+            ctx.translate(Math.random() * 512, Math.random() * 512);
+            ctx.fillRect(-512, -512, w + 1024, h + 1024);
+            
             ctx.restore();
           }
 
