@@ -20,6 +20,7 @@ export interface CanvasRendererRef {
 export const CanvasRenderer = forwardRef<CanvasRendererRef, CanvasRendererProps>(({ project, getAudioData, getWaveformData, isPlaying, isRecording = false, currentTime = 0, selectedElementId, onUpdateElement, onSelectElement }, ref) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const offscreenCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const bgMaskCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const animationRef = useRef<number>(0);
   const bgImageRef = useRef<HTMLImageElement | null>(null);
   const bgVideoRef = useRef<HTMLVideoElement | null>(null);

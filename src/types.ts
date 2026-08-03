@@ -8,6 +8,9 @@ export interface BackgroundConfig {
   brightness?: number;
   contrast?: number;
   vignette?: number;
+  focusEnabled?: boolean;
+  focusSize?: number;
+  focusBlur?: number;
 }
 export interface PostProcessingConfig {
   bloom: boolean;

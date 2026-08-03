@@ -549,6 +549,37 @@ export const Editor: React.FC<EditorProps> = ({ project: initialProject, onExit 
                         </div>
                         <input type="range" min="0" max="100" value={project.backgroundConfig.vignette || 0} onChange={e => setProject({ ...project, backgroundConfig: { ...project.backgroundConfig, vignette: Number(e.target.value) } })} className="w-full h-1.5 bg-white/10 rounded-full appearance-none cursor-pointer accent-blue-500" />
                       </label>
+                      
+                      <div className="pt-2 pb-1 border-t border-white/10 mt-2">
+                        <div className="flex items-center gap-2 mb-2">
+                          <input 
+                            type="checkbox" 
+                            id="focusEnabled"
+                            checked={project.backgroundConfig.focusEnabled || false} 
+                            onChange={e => setProject({ ...project, backgroundConfig: { ...project.backgroundConfig, focusEnabled: e.target.checked } })}
+                            className="rounded bg-black/50 border-white/10 text-blue-500"
+                          />
+                          <label htmlFor="focusEnabled" className="text-[10px] text-gray-400 cursor-pointer uppercase tracking-widest font-bold">Aktifkan Area Fokus</label>
+                        </div>
+                        {project.backgroundConfig.focusEnabled && (
+                          <>
+                            <label className="block mt-2">
+                              <div className="flex justify-between mb-1">
+                                <span className="text-[10px] text-gray-400">Ukuran Area Fokus</span>
+                                <span className="text-[10px] text-white">{project.backgroundConfig.focusSize ?? 50}%</span>
+                              </div>
+                              <input type="range" min="10" max="100" value={project.backgroundConfig.focusSize ?? 50} onChange={e => setProject({ ...project, backgroundConfig: { ...project.backgroundConfig, focusSize: Number(e.target.value) } })} className="w-full h-1.5 bg-white/10 rounded-full appearance-none cursor-pointer accent-blue-500" />
+                            </label>
+                            <label className="block mt-2">
+                              <div className="flex justify-between mb-1">
+                                <span className="text-[10px] text-gray-400">Blur Luar Fokus</span>
+                                <span className="text-[10px] text-white">{project.backgroundConfig.focusBlur ?? 10}px</span>
+                              </div>
+                              <input type="range" min="0" max="100" value={project.backgroundConfig.focusBlur ?? 10} onChange={e => setProject({ ...project, backgroundConfig: { ...project.backgroundConfig, focusBlur: Number(e.target.value) } })} className="w-full h-1.5 bg-white/10 rounded-full appearance-none cursor-pointer accent-blue-500" />
+                            </label>
+                          </>
+                        )}
+                      </div>
                     </div>
                     )}
                   </div>
