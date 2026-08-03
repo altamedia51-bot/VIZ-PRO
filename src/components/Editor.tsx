@@ -953,6 +953,7 @@ export const Editor: React.FC<EditorProps> = ({ project: initialProject, onExit 
                     { type: 'spiral_galaxy', name: 'Spiral Galaxy', category: 'particles', label: 'PARTICLES' },
                     { type: 'multi_sine', name: 'Multi Sine Waves', category: 'waves', label: 'WAVES' },
                     { type: 'single_sine', name: 'Single Sine Wave', category: 'waves', label: 'WAVES' },
+                    { type: 'line_glow', name: 'Straight Line', category: 'waves', label: 'WAVES' },
                     { type: 'flames', name: 'Flames Column', category: 'elements', label: 'ELEMENTS' },
                     { type: 'rain', name: 'Rain Ripples', category: 'elements', label: 'ELEMENTS' },
                     { type: 'color_pixel', name: 'Color Pixel', category: 'elements', label: 'ELEMENTS' },
@@ -1327,6 +1328,29 @@ export const Editor: React.FC<EditorProps> = ({ project: initialProject, onExit 
                       </div>
                       <input type="range" min="50" max="600" value={el.height || 100} onChange={e => updateElement(el.id, { height: Number(e.target.value) })} className="w-full h-1.5 bg-white/10 rounded-full appearance-none cursor-pointer accent-indigo-500" />
                     </label>
+                  )}
+                  
+                  {el.type === 'line_glow' && (
+                    <>
+                      <label className="block mt-2">
+                        <div className="flex justify-between mb-1">
+                          <span className="text-[10px] text-gray-500">Panjang Garis ({el.width || 600}px)</span>
+                        </div>
+                        <input type="range" min="100" max="1920" value={el.width || 600} onChange={e => updateElement(el.id, { width: Number(e.target.value) })} className="w-full h-1.5 bg-white/10 rounded-full appearance-none cursor-pointer accent-indigo-500" />
+                      </label>
+                      <label className="block mt-2">
+                        <div className="flex justify-between mb-1">
+                          <span className="text-[10px] text-gray-500">Ketebalan Garis ({el.lineWidth || 4}px)</span>
+                        </div>
+                        <input type="range" min="1" max="20" value={el.lineWidth || 4} onChange={e => updateElement(el.id, { lineWidth: Number(e.target.value) })} className="w-full h-1.5 bg-white/10 rounded-full appearance-none cursor-pointer accent-indigo-500" />
+                      </label>
+                      <label className="block mt-2">
+                        <div className="flex justify-between mb-1">
+                          <span className="text-[10px] text-gray-500">Glow/Blur ({el.radius || 20})</span>
+                        </div>
+                        <input type="range" min="0" max="100" value={el.radius || 20} onChange={e => updateElement(el.id, { radius: Number(e.target.value) })} className="w-full h-1.5 bg-white/10 rounded-full appearance-none cursor-pointer accent-indigo-500" />
+                      </label>
+                    </>
                   )}
                   
                   {el.type === 'rain' && (

@@ -88,9 +88,9 @@ export const CanvasRenderer = forwardRef<CanvasRendererRef, CanvasRendererProps>
         const totalWidth = 64 * (el.barWidth + el.barSpacing) * elScale;
         const h = el.height * elScale;
         hit = x >= el.x - totalWidth / 2 && x <= el.x + totalWidth / 2 && y >= el.y - h / 2 && y <= el.y + h / 2;
-      } else if (el.type === 'waveform' || el.type === 'smooth_curve' || el.type === 'multi_sine' || el.type === 'single_sine' || el.type === 'flames') {
-        const w = el.width * elScale;
-        const h = el.height * elScale;
+      } else if (el.type === 'waveform' || el.type === 'smooth_curve' || el.type === 'multi_sine' || el.type === 'single_sine' || el.type === 'flames' || el.type === 'line_glow') {
+        const w = (el.width || 600) * elScale;
+        const h = (el.height || 100) * elScale;
         hit = x >= el.x - w / 2 && x <= el.x + w / 2 && y >= el.y - h / 2 && y <= el.y + h / 2;
       } else if (el.type === 'particles' || el.type === 'orbs' || el.type === 'spiral_galaxy') {
         const dx = x - el.x;
@@ -964,6 +964,76 @@ export const CanvasRenderer = forwardRef<CanvasRendererRef, CanvasRendererProps>
                }
                ctx.stroke();
              }
+          }
+          else if (el.type === 'line_glow') {
+             const averageFreq = freqData.length ? freqData.reduce((a,b)=>a+b,0) / freqData.length : 0;
+             const intensity = averageFreq / 255;
+             
+             const w = el.width || 600;
+             const baseColor = el.color || '#ffffff';
+             
+             // create a gradient that fades out on both ends
+             const grad = ctx.createLinearGradient(el.x - w/2, el.y, el.x + w/2, el.y);
+             
+             // helper for rgb
+             const hexToRgb = (hex: string) => {
+               const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+               return result ? `${intFromHex(result[1])}, ${intFromHex(result[2])}, ${intFromHex(result[3])}` : '255, 255, 255';
+             };
+             const intFromHex = (hex: string) => parseInt(hex, 16);
+             
+             const rgb1 = hexToRgb(baseColor);
+             const color1_0 = `rgba(${rgb1}, 0)`;
+             const color1_1 = `rgba(${rgb1}, 1)`;
+             
+             if (el.useGradient) {
+               const color2 = el.color2 || '#00ffff';
+               const rgb2 = hexToRgb(color2);
+               const color2_0 = `rgba(${rgb2}, 0)`;
+               const color2_1 = `rgba(${rgb2}, 1)`;
+               
+               grad.addColorStop(0, color1_0);
+               grad.addColorStop(0.2, color1_1);
+               grad.addColorStop(0.8, color2_1);
+               grad.addColorStop(1, color2_0);
+             } else {
+               grad.addColorStop(0, color1_0);
+               grad.addColorStop(0.5, color1_1);
+               grad.addColorStop(1, color1_0);
+             }
+             
+             ctx.save();
+             ctx.globalAlpha = el.opacity ?? 1;
+             
+             // Glow
+             ctx.shadowBlur = (el.radius || 20) * (1 + intensity * 0.8);
+             ctx.shadowColor = baseColor;
+             
+             // Audio reactive thickness
+             const baseWidth = el.lineWidth || 4;
+             ctx.lineWidth = baseWidth + (intensity * 8);
+             ctx.strokeStyle = grad;
+             
+             // Draw outer glow line
+             ctx.beginPath();
+             ctx.moveTo(el.x - w/2, el.y);
+             ctx.lineTo(el.x + w/2, el.y);
+             ctx.stroke();
+             
+             // Draw bright inner core
+             ctx.lineWidth = Math.max(1, baseWidth / 2) + (intensity * 2);
+             
+             const coreGrad = ctx.createLinearGradient(el.x - w/2, el.y, el.x + w/2, el.y);
+             coreGrad.addColorStop(0, 'rgba(255,255,255,0)');
+             coreGrad.addColorStop(0.1, 'rgba(255,255,255,0.4)');
+             coreGrad.addColorStop(0.5, 'rgba(255,255,255,1)');
+             coreGrad.addColorStop(0.9, 'rgba(255,255,255,0.4)');
+             coreGrad.addColorStop(1, 'rgba(255,255,255,0)');
+             
+             ctx.strokeStyle = coreGrad;
+             ctx.stroke();
+             
+             ctx.restore();
           }
           else if (el.type === 'single_sine') {
              ctx.strokeStyle = getStyle(el, el.x - el.width / 2, el.y - el.height / 2, el.x + el.width / 2, el.y + el.height / 2);
