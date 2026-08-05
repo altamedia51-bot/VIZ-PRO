@@ -172,7 +172,7 @@ export const Editor: React.FC<EditorProps> = ({ project: initialProject, onExit 
       newEl.fontFamily = 'Arial';
     } else if (type as any === 'hanging_text') {
       newEl.type = 'text';
-      newEl.text = 'crane shot.';
+      newEl.text = 'VIZPRO';
       newEl.fontSize = 80;
       newEl.fontFamily = 'Arial';
       newEl.templateStyle = 'hanging';
