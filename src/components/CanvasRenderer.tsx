@@ -466,13 +466,21 @@ export const CanvasRenderer = forwardRef<CanvasRendererRef, CanvasRendererProps>
               ctx.save();
               
               let swayAngle = 0;
+              let swayDepth = 0;
+              let swayLift = 0;
               if (el.templateStyle === 'hanging') {
                  // sway like a pendulum
-                 swayAngle = Math.sin(time * 0.002) * 0.05;
+                 swayAngle = Math.sin(time * 0.002) * 0.06; // Left/right swing
+                 
+                 // Simulate forward/backward swing by scaling and slightly lifting
+                 swayDepth = Math.sin(time * 0.0013) * 0.12; 
+                 swayLift = Math.abs(swayDepth) * 30; // Lifts up when swinging away/towards
+                 
                  // pivot at the top of the screen (x = el.x, y = 0)
                  ctx.translate(el.x, 0);
                  ctx.rotate(swayAngle);
-                 ctx.translate(0, finalY); // move down to el.y
+                 ctx.scale(1 + swayDepth, 1 + swayDepth);
+                 ctx.translate(0, finalY - swayLift); // move down to el.y
               } else {
                  ctx.translate(el.x, finalY);
               }
@@ -502,7 +510,7 @@ export const CanvasRenderer = forwardRef<CanvasRendererRef, CanvasRendererProps>
                  ctx.lineWidth = 1.5;
                  ctx.beginPath();
                  // string from far up to the ring
-                 ctx.moveTo(0, -finalY);
+                 ctx.moveTo(0, -(finalY - swayLift));
                  ctx.lineTo(0, -el.fontSize / 2 - 15);
                  ctx.stroke();
                  
