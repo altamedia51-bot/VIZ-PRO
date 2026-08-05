@@ -515,7 +515,8 @@ export const CanvasRenderer = forwardRef<CanvasRendererRef, CanvasRendererProps>
                  const ringY = topOfText - ringOuter * 0.6;
                  
                  // string from far up to the top of the ring
-                 ctx.moveTo(0, -(finalY - swayLift));
+                 // Extend well past the top of the screen to ensure it never looks cut off
+                 ctx.moveTo(0, -(finalY - swayLift) - 2000);
                  ctx.lineTo(0, ringY - ringOuter);
                  ctx.stroke();
                  
