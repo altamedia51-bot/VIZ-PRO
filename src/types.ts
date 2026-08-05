@@ -168,7 +168,7 @@ export interface SubtitleElement extends BaseElement {
   fontSize: number;
   fontFamily: string;
   letterSpacing?: number;
-  templateStyle?: 'default' | 'bubble_yellow' | 'bubble_black' | 'neon' | 'glow_border' | 'tiktok_pop' | 'tiktok_karaoke' | 'tiktok_shadow' | 'highlight_pop';
+  templateStyle?: 'default' | 'bubble_yellow' | 'bubble_black' | 'neon' | 'glow_border' | 'tiktok_pop' | 'tiktok_karaoke' | 'tiktok_shadow' | 'highlight_pop' | 'hanging';
   textCase?: 'none' | 'uppercase' | 'lowercase' | 'capitalize';
 }
 export interface DigitalMatrixRainElement extends BaseElement {

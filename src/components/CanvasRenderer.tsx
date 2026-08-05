@@ -464,7 +464,18 @@ export const CanvasRenderer = forwardRef<CanvasRendererRef, CanvasRendererProps>
               }
 
               ctx.save();
-              ctx.translate(el.x, finalY);
+              
+              let swayAngle = 0;
+              if (el.templateStyle === 'hanging') {
+                 // sway like a pendulum
+                 swayAngle = Math.sin(time * 0.002) * 0.05;
+                 // pivot at the top of the screen (x = el.x, y = 0)
+                 ctx.translate(el.x, 0);
+                 ctx.rotate(swayAngle);
+                 ctx.translate(0, finalY); // move down to el.y
+              } else {
+                 ctx.translate(el.x, finalY);
+              }
               
               // Apply TikTok Pop-up animation
               if (el.templateStyle === 'tiktok_pop') {
@@ -484,6 +495,34 @@ export const CanvasRenderer = forwardRef<CanvasRendererRef, CanvasRendererProps>
               const paddingX = 20;
               const paddingY = 10;
               
+              // Draw hanging string and ring if templateStyle is hanging
+              if (el.templateStyle === 'hanging') {
+                 ctx.save();
+                 ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+                 ctx.lineWidth = 1.5;
+                 ctx.beginPath();
+                 // string from far up to the ring
+                 ctx.moveTo(0, -finalY);
+                 ctx.lineTo(0, -el.fontSize / 2 - 15);
+                 ctx.stroke();
+                 
+                 // the ring
+                 ctx.beginPath();
+                 ctx.arc(0, -el.fontSize / 2 - 10, 5, 0, Math.PI * 2);
+                 ctx.strokeStyle = '#ffffff';
+                 ctx.lineWidth = 2.5;
+                 ctx.stroke();
+                 ctx.restore();
+                 
+                 // Apply 3D shadow effect to text
+                 ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+                 ctx.shadowOffsetX = 4;
+                 ctx.shadowOffsetY = 6;
+                 ctx.shadowBlur = 8;
+                 
+                 // also draw a thick 3D extrusion by drawing text multiple times
+              }
+
               // Pre-render Backgrounds
               if (el.templateStyle === 'bubble_yellow' || el.templateStyle === 'bubble_black') {
                  lines.forEach((line, i) => {

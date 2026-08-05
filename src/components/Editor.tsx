@@ -170,6 +170,13 @@ export const Editor: React.FC<EditorProps> = ({ project: initialProject, onExit 
       newEl.text = 'New Text';
       newEl.fontSize = 60;
       newEl.fontFamily = 'Arial';
+    } else if (type as any === 'hanging_text') {
+      newEl.type = 'text';
+      newEl.text = 'crane shot.';
+      newEl.fontSize = 80;
+      newEl.fontFamily = 'Arial';
+      newEl.templateStyle = 'hanging';
+      newEl.y = 300; // Hang it a bit lower
     } else if (type === 'waveform') {
       newEl.width = 800;
       newEl.height = 200;
@@ -985,6 +992,7 @@ export const Editor: React.FC<EditorProps> = ({ project: initialProject, onExit 
                     { type: 'spiral_galaxy', name: 'Spiral Galaxy', category: 'particles', label: 'PARTICLES' },
                     { type: 'multi_sine', name: 'Multi Sine Waves', category: 'waves', label: 'WAVES' },
                     { type: 'single_sine', name: 'Single Sine Wave', category: 'waves', label: 'WAVES' },
+                    { type: 'hanging_text', name: 'Hanging Text', category: 'waves', label: 'TEXT' },
                     { type: 'line_glow', name: 'Straight Line', category: 'waves', label: 'WAVES' },
                     { type: 'flames', name: 'Flames Column', category: 'elements', label: 'ELEMENTS' },
                     { type: 'rain', name: 'Rain Ripples', category: 'elements', label: 'ELEMENTS' },
@@ -1137,6 +1145,9 @@ export const Editor: React.FC<EditorProps> = ({ project: initialProject, onExit 
                           <button onClick={() => updateElement(el.id, { templateStyle: 'tiktok_karaoke', color: '#00ff00' })} className="p-3 bg-[#1A1A1A] border border-white/5 hover:border-blue-500 rounded flex items-center justify-center min-h-[60px]">
                             <span className="text-white font-bold text-xs" style={{textShadow: '2px 2px 0px #000000'}}>KARAOKE</span>
                           </button>
+                          <button onClick={() => updateElement(el.id, { templateStyle: 'hanging', color: '#fff4e6' })} className="p-3 bg-[#1A1A1A] border border-white/5 hover:border-blue-500 rounded flex items-center justify-center min-h-[60px]">
+                            <span className="text-white font-bold text-xs">HANGING</span>
+                          </button>
                           <button onClick={() => updateElement(el.id, { templateStyle: 'tiktok_shadow', color: '#ffffff' })} className="p-3 bg-[#1A1A1A] border border-white/5 hover:border-blue-500 rounded flex items-center justify-center min-h-[60px]">
                             <span className="text-white font-bold text-[10px]" style={{textShadow: '-2px 0px 0px #00ffff, 2px 0px 0px #ff0050'}}>TIKTOK</span>
                           </button>
@@ -1193,6 +1204,15 @@ export const Editor: React.FC<EditorProps> = ({ project: initialProject, onExit 
                         </div>
                         <input type="range" min="10" max="200" value={el.fontSize || 16} onChange={e => updateElement(el.id, { fontSize: Number(e.target.value) })} className="w-full h-1.5 bg-white/10 rounded-full appearance-none cursor-pointer accent-indigo-500" />
                       </label>
+                      
+                      {el.type === 'text' && el.templateStyle === 'hanging' && (
+                        <label className="block mt-4 mb-4">
+                          <div className="flex justify-between mb-1">
+                            <span className="text-[10px] text-gray-500">Panjang Tali</span>
+                          </div>
+                          <input type="range" min="50" max="720" value={el.y} onChange={e => updateElement(el.id, { y: Number(e.target.value) })} className="w-full h-1.5 bg-white/10 rounded-full appearance-none cursor-pointer accent-indigo-500" />
+                        </label>
+                      )}
                       
                       <label className="block">
                         <span className="text-[10px] text-gray-500 mb-1 block">Format Teks (Case)</span>
