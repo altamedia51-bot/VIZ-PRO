@@ -320,13 +320,13 @@ export const CanvasRenderer = forwardRef<CanvasRendererRef, CanvasRendererProps>
       const { dataArray: waveData, bufferLength: waveLength } = getWaveformData();
 
       const getStyle = (el: any, x1: number, y1: number, x2: number, y2: number) => {
-        if (el.useGradient && el.color2) {
+        if (el.useGradient) {
           const grad = ctx.createLinearGradient(x1, y1, x2, y2);
-          grad.addColorStop(0, el.color);
-          grad.addColorStop(1, el.color2);
+          grad.addColorStop(0, el.color || '#ffffff');
+          grad.addColorStop(1, el.color2 || '#00ffff');
           return grad;
         }
-        return el.color;
+        return el.color || '#ffffff';
       };
 
       // Draw Elements
@@ -423,6 +423,17 @@ export const CanvasRenderer = forwardRef<CanvasRendererRef, CanvasRendererProps>
               } else if (el.animation === 'wave') {
                 const waveFreq = freqData.length ? freqData.reduce((a,b)=>a+b,0) / freqData.length : 0;
                 finalScale = 1 + (waveFreq / 255) * 0.2;
+              } else if (el.animation === 'drop_bounce') {
+                const elapsed = currentT - (el.startTime || 0);
+                // Animate for the first 1.5 seconds
+                if (elapsed < 1.5 && elapsed >= 0) {
+                  // Damped sine wave: e^(-decay * t) * cos(freq * t)
+                  const startOffset = -600; // Drop from 600px above
+                  const decay = 3;
+                  const freq = 10;
+                  const offset = startOffset * Math.exp(-decay * elapsed) * Math.cos(freq * elapsed);
+                  finalY = el.y + offset;
+                }
               }
             } else if (el.type === 'subtitle') {
               activeSub = project?.subtitles?.find(s => currentT >= s.start && currentT <= s.end);
@@ -644,7 +655,8 @@ export const CanvasRenderer = forwardRef<CanvasRendererRef, CanvasRendererProps>
                   ctx.shadowBlur = 0;
                   ctx.shadowOffsetX = 0;
                   ctx.shadowOffsetY = 0;
-                  ctx.fillStyle = textColor;
+                  const lineWidth = ctx.measureText(line).width;
+                  ctx.fillStyle = el.useGradient ? getStyle(el, -lineWidth/2, lineY, lineWidth/2, lineY) : textColor;
                   
                   // Draw ring front
                   if (i === 0) {

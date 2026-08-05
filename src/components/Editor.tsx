@@ -854,6 +854,9 @@ export const Editor: React.FC<EditorProps> = ({ project: initialProject, onExit 
                             <label className="block text-[10px] text-gray-400 mb-2">Warna & Gradient Teks</label>
                             <div className="flex items-center gap-3">
                               <input type="color" value={el.color || '#ffffff'} onChange={e => updateElement(el.id, { color: e.target.value })} className="w-8 h-8 rounded border border-white/10 cursor-pointer bg-transparent" />
+                              {el.useGradient && (
+                                <input type="color" value={el.color2 || '#00ffff'} onChange={e => updateElement(el.id, { color2: e.target.value })} className="w-8 h-8 rounded border border-white/10 cursor-pointer bg-transparent" />
+                              )}
                               <label className="flex items-center gap-2 cursor-pointer">
                                 <input type="checkbox" checked={el.useGradient || false} onChange={e => updateElement(el.id, { useGradient: e.target.checked })} className="rounded bg-[#1A1A1A] border-white/10 text-blue-500 focus:ring-blue-500" />
                                 <span className="text-xs text-gray-300">Gunakan Gradient Teks</span>
@@ -868,6 +871,7 @@ export const Editor: React.FC<EditorProps> = ({ project: initialProject, onExit 
                               <option value="glow_pulse">Glow Pulse</option>
                               <option value="bounce">Bounce</option>
                               <option value="wave">Wave</option>
+                              <option value="drop_bounce">Hanging / Drop Bounce</option>
                             </select>
                           </div>
                         </div>

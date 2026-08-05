@@ -70,7 +70,7 @@ export interface TextElement extends BaseElement {
   fontFamily: string;
   letterSpacing?: number;
   useGradient?: boolean;
-  animation?: 'none' | 'glow_pulse' | 'wave' | 'bounce';
+  animation?: 'none' | 'glow_pulse' | 'wave' | 'bounce' | 'drop_bounce';
   textCase?: 'none' | 'uppercase' | 'lowercase' | 'capitalize';
 }
 export interface WaveformElement extends BaseElement {
