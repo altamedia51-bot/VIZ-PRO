@@ -1452,22 +1452,22 @@ export const CanvasRenderer = forwardRef<CanvasRendererRef, CanvasRendererProps>
   const aspectRatio = project?.resolution ? `${project.resolution.width} / ${project.resolution.height}` : '16 / 9';
 
   return (
-    <div 
-      className="w-full bg-black rounded-lg overflow-hidden shadow-2xl relative flex items-center justify-center"
-      style={{ aspectRatio }}
-    >
-      <canvas 
-        ref={canvasRef} 
-        onMouseDown={handlePointerDown}
-        onMouseMove={handlePointerMove}
-        onMouseUp={handlePointerUp}
-        onMouseLeave={handlePointerUp}
-        onTouchStart={handlePointerDown}
-        onTouchMove={handlePointerMove}
-        onTouchEnd={handlePointerUp}
-        onTouchCancel={handlePointerUp}
-        className={`w-full h-full object-contain block ${draggingId ? 'cursor-grabbing' : 'cursor-grab'}`}
-      />
-    </div>
+    <canvas 
+      ref={canvasRef} 
+      onMouseDown={handlePointerDown}
+      onMouseMove={handlePointerMove}
+      onMouseUp={handlePointerUp}
+      onMouseLeave={handlePointerUp}
+      onTouchStart={handlePointerDown}
+      onTouchMove={handlePointerMove}
+      onTouchEnd={handlePointerUp}
+      onTouchCancel={handlePointerUp}
+      className={`bg-black rounded-lg overflow-hidden shadow-2xl block object-contain mx-auto ${draggingId ? 'cursor-grabbing' : 'cursor-grab'}`}
+      style={{
+        aspectRatio,
+        maxWidth: '100%',
+        maxHeight: '100%'
+      }}
+    />
   );
 });

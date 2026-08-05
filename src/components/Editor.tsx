@@ -3,6 +3,7 @@ import React, { useRef, useState, useCallback, useEffect } from 'react';
 import { Project, VizElement, BackgroundType, TextElement } from '../types';
 import { CanvasRenderer, CanvasRendererRef } from './CanvasRenderer';
 import { AnalyticsDashboard } from './AnalyticsDashboard';
+import { Timeline } from './Timeline';
 import { useAudioAnalyzer } from '../hooks/useAudioAnalyzer';
 import { Recorder } from '../utils/recordStream';
 import { Play, Pause, SkipBack, Square, Plus, Image as ImageIcon, Settings, Download, Trash2, Home, Music, Radio, Type, Sparkles, Layers, Search, Volume2, VolumeX, ChevronDown, FolderOpen, Undo2, Redo2, FileCode, Maximize2, Settings as SettingsIcon, CheckCircle2, Cpu, Settings, Database } from 'lucide-react';
@@ -1007,7 +1008,7 @@ export const Editor: React.FC<EditorProps> = ({ project: initialProject, onExit 
         </aside>
 
         {/* Main Content */}
-        <main className={`flex-1 flex flex-col min-w-0 bg-[#0A0A0C] p-8 gap-8 overflow-y-auto ${isFullscreen ? 'fixed inset-0 z-50 p-4 bg-black' : ''}`}>
+        <main className={`flex-1 flex flex-col min-w-0 min-h-0 bg-[#0A0A0C] p-2 lg:p-4 gap-2 lg:gap-4 overflow-hidden ${isFullscreen ? 'fixed inset-0 z-50 p-4 bg-black' : ''}`}>
           
           {isFullscreen && (
             <button onClick={toggleFullScreen} className="absolute top-4 right-4 z-50 w-10 h-10 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center text-white backdrop-blur-sm transition-colors">
@@ -1015,8 +1016,8 @@ export const Editor: React.FC<EditorProps> = ({ project: initialProject, onExit 
             </button>
           )}
           {/* Canvas Wrapper */}
-          <div className="flex-1 flex flex-col items-center justify-center">
-            <div className="w-full max-w-5xl">
+          <div className="flex-1 flex flex-col items-center justify-center min-h-0">
+            <div className="w-full h-full flex items-center justify-center min-h-0 relative">
               <CanvasRenderer 
                 ref={rendererRef}
                 project={project}
@@ -1032,74 +1033,18 @@ export const Editor: React.FC<EditorProps> = ({ project: initialProject, onExit 
             </div>
           </div>
 
-          {/* Timeline & Player */}
-          <div className="bg-[#121216] border border-white/10 rounded-2xl p-4 flex items-center gap-6">
-            <div className="flex items-center gap-2 font-mono text-sm tracking-widest shrink-0">
-              <span className="text-[#3b82f6]">{formatTime(currentTime)}</span>
-              <span className="text-gray-600">/</span>
-              <span className="text-gray-400">{formatTime(duration)}</span>
-            </div>
-            
-            <div className="flex-1 flex items-center gap-4">
-              <div className="flex items-center gap-2 shrink-0">
-                <button 
-                  onClick={() => seek(0)}
-                  disabled={!audioUrl}
-                  className="w-10 h-10 flex items-center justify-center border border-white/10 hover:bg-white/5 text-gray-400 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <SkipBack size={18} />
-                </button>
-                <button 
-                  onClick={togglePlay}
-                  disabled={!audioUrl}
-                  className="w-10 h-10 flex items-center justify-center bg-[#2563eb] hover:bg-blue-600 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-blue-500/20"
-                >
-                  {isPlaying ? <Pause size={18} fill="currentColor" /> : <Play size={18} fill="currentColor" className="ml-0.5" />}
-                </button>
-              </div>
-              
-              <div className="flex-1 flex items-center group relative h-6">
-                  <input 
-                    type="range"
-                    min="0"
-                    max={duration || 100}
-                    value={currentTime}
-                    onChange={(e) => seek(Number(e.target.value))}
-                    className="absolute w-full h-full appearance-none cursor-pointer z-10 opacity-0"
-                  />
-                  <div className="w-full h-1.5 bg-[#2a2a2a] rounded-full overflow-hidden pointer-events-none relative z-0">
-                    <div 
-                      className="h-full bg-[#3b82f6]" 
-                      style={{ width: `${duration ? (currentTime / duration) * 100 : 0}%` }}
-                    />
-                  </div>
-                  <div 
-                    className="absolute h-3 w-3 bg-[#3b82f6] rounded-full shadow pointer-events-none z-0 transform -translate-y-1/2 -translate-x-1/2 top-1/2" 
-                    style={{ left: `${duration ? (currentTime / duration) * 100 : 0}%` }}
-                  />
-              </div>
-              
-              <div className="flex items-center gap-2 shrink-0 ml-4 w-24 group relative">
-                <button onClick={() => setVolume(volume === 0 ? 1 : 0)} className="text-gray-400 hover:text-white transition-colors">
-                  {volume === 0 ? <VolumeX size={16} /> : <Volume2 size={16} />}
-                </button>
-                <div className="flex-1 relative h-6 flex items-center">
-                  <input 
-                    type="range"
-                    min="0"
-                    max="1"
-                    step="0.01"
-                    value={volume}
-                    onChange={(e) => setVolume(Number(e.target.value))}
-                    className="absolute w-full h-full appearance-none cursor-pointer z-10 opacity-0"
-                  />
-                  <div className="w-full h-1 bg-[#2a2a2a] rounded-full overflow-hidden pointer-events-none">
-                    <div className="h-full bg-[#3b82f6]" style={{ width: `${volume * 100}%` }} />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+          {/* Timeline & Player UI */}
+          <Timeline 
+            project={project}
+            currentTime={currentTime}
+            duration={duration}
+            isPlaying={isPlaying}
+            onSeek={seek}
+            onTogglePlay={togglePlay}
+            audioUrl={audioUrl}
+            selectedElementId={selectedElementId}
+            onSelectElement={setSelectedElementId}
+          />
         </main>
 
         {/* Right Sidebar - Properties or Analytics */}
