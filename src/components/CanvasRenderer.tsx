@@ -509,14 +509,18 @@ export const CanvasRenderer = forwardRef<CanvasRendererRef, CanvasRendererProps>
                  ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
                  ctx.lineWidth = 1.5;
                  ctx.beginPath();
+                 // calculate top of text block
+                 // the visual top of the text is usually closer to fontSize * 0.35 above the middle baseline
+                 const topOfText = startY - el.fontSize * 0.35;
+                 
                  // string from far up to the ring
                  ctx.moveTo(0, -(finalY - swayLift));
-                 ctx.lineTo(0, -el.fontSize / 2 - 15);
+                 ctx.lineTo(0, topOfText - 5);
                  ctx.stroke();
                  
                  // the ring
                  ctx.beginPath();
-                 ctx.arc(0, -el.fontSize / 2 - 10, 5, 0, Math.PI * 2);
+                 ctx.arc(0, topOfText, 5, 0, Math.PI * 2);
                  ctx.strokeStyle = '#ffffff';
                  ctx.lineWidth = 2.5;
                  ctx.stroke();
