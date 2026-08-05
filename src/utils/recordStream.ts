@@ -44,7 +44,7 @@ export class Recorder {
 
   start() {
     this.recordedChunks = [];
-    this.mediaRecorder?.start(100);
+    this.mediaRecorder?.start();
   }
 
   stop(): Promise<Blob> {
