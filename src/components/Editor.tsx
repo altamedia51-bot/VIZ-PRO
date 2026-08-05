@@ -1052,6 +1052,7 @@ export const Editor: React.FC<EditorProps> = ({ project: initialProject, onExit 
             audioUrl={audioUrl}
             selectedElementId={selectedElementId}
             onSelectElement={setSelectedElementId}
+            onUpdateElement={updateElement}
           />
         </main>
 

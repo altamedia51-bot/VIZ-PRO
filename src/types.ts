@@ -48,6 +48,8 @@ export interface BaseElement {
   opacity: number;
   useGradient?: boolean;
   color2?: string;
+  startTime?: number; // Start time in seconds
+  endTime?: number;   // End time in seconds
 }
 export interface BarsElement extends BaseElement {
   type: 'bars';

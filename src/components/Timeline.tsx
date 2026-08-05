@@ -12,6 +12,7 @@ interface TimelineProps {
   audioUrl: string | null;
   selectedElementId: string | null;
   onSelectElement: (id: string | null) => void;
+  onUpdateElement?: (id: string, updates: any) => void;
 }
 
 export const Timeline: React.FC<TimelineProps> = ({
@@ -23,10 +24,47 @@ export const Timeline: React.FC<TimelineProps> = ({
   onTogglePlay,
   audioUrl,
   selectedElementId,
-  onSelectElement
+  onSelectElement,
+  onUpdateElement
 }) => {
   const [zoom, setZoom] = useState(1);
   const containerRef = useRef<HTMLDivElement>(null);
+  const [draggingHandle, setDraggingHandle] = useState<{ id: string, type: 'start' | 'end' | 'move', startX: number, initialStart: number, initialEnd: number } | null>(null);
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!draggingHandle || !onUpdateElement) return;
+      
+      const deltaX = e.clientX - draggingHandle.startX;
+      const deltaTime = deltaX / (20 * zoom);
+      
+      if (draggingHandle.type === 'start') {
+        const newStart = Math.max(0, Math.min(draggingHandle.initialStart + deltaTime, draggingHandle.initialEnd - 0.1));
+        onUpdateElement(draggingHandle.id, { startTime: newStart });
+      } else if (draggingHandle.type === 'end') {
+        const newEnd = Math.max(draggingHandle.initialStart + 0.1, Math.min(draggingHandle.initialEnd + deltaTime, duration || 60));
+        onUpdateElement(draggingHandle.id, { endTime: newEnd });
+      } else if (draggingHandle.type === 'move') {
+        const clipDuration = draggingHandle.initialEnd - draggingHandle.initialStart;
+        const newStart = Math.max(0, Math.min(draggingHandle.initialStart + deltaTime, (duration || 60) - clipDuration));
+        onUpdateElement(draggingHandle.id, { startTime: newStart, endTime: newStart + clipDuration });
+      }
+    };
+
+    const handleMouseUp = () => {
+      setDraggingHandle(null);
+    };
+
+    if (draggingHandle) {
+      window.addEventListener('mousemove', handleMouseMove);
+      window.addEventListener('mouseup', handleMouseUp);
+    }
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [draggingHandle, zoom, duration, onUpdateElement]);
   
   // Format time function
   const formatTime = (time: number) => {
@@ -153,11 +191,11 @@ export const Timeline: React.FC<TimelineProps> = ({
                   clips.push({ id: 'bg-main', name: 'Background', color: 'bg-gray-700', start: 0, length: duration || 60 });
                } else if (track.type === 'viz') {
                   clips = project.elements.filter(e => e.type !== 'text' && e.type !== 'subtitle').map(e => ({
-                     id: e.id, name: `Visualizer (${e.type})`, color: 'bg-blue-600', start: 0, length: duration || 60
+                     id: e.id, name: `Visualizer (${e.type})`, color: 'bg-blue-600', start: e.startTime || 0, length: (e.endTime || duration || 60) - (e.startTime || 0), isElement: true
                   }));
                } else if (track.type === 'text') {
                   clips = project.elements.filter(e => e.type === 'text' || e.type === 'subtitle').map(e => ({
-                     id: e.id, name: `Text (${(e as any).text || e.type})`, color: 'bg-purple-600', start: 0, length: duration || 60
+                     id: e.id, name: `Text (${(e as any).text || e.type})`, color: 'bg-purple-600', start: e.startTime || 0, length: (e.endTime || duration || 60) - (e.startTime || 0), isElement: true
                   }));
                }
 
@@ -167,7 +205,7 @@ export const Timeline: React.FC<TimelineProps> = ({
                        <div 
                          key={clip.id}
                          onClick={() => onSelectElement(clip.id)}
-                         className={`absolute h-5 rounded text-[10px] border border-white/20 shadow-md flex items-center px-2 cursor-pointer transition-colors overflow-hidden
+                         className={`absolute h-5 rounded text-[10px] border border-white/20 shadow-md flex items-center group
                            ${clip.color} 
                            ${selectedElementId === clip.id ? 'ring-2 ring-white z-10' : 'hover:brightness-110 opacity-80'}
                          `}
@@ -178,7 +216,43 @@ export const Timeline: React.FC<TimelineProps> = ({
                            top: clips.length > 1 ? `${(i % 2) * 4 + 2}px` : '6px'
                          }}
                        >
-                         <span className="text-[10px] font-bold text-white truncate">{clip.name}</span>
+                         {clip.isElement && (
+                           <div 
+                             className="absolute left-0 top-0 bottom-0 w-3 cursor-ew-resize hover:bg-white/30 z-20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                             onMouseDown={(e) => {
+                               e.stopPropagation();
+                               e.preventDefault();
+                               setDraggingHandle({ id: clip.id, type: 'start', startX: e.clientX, initialStart: clip.start, initialEnd: clip.start + clip.length });
+                             }}
+                           >
+                             <div className="w-0.5 h-3 bg-white/70 rounded-full" />
+                           </div>
+                         )}
+                         <div 
+                           className={`flex-1 w-full h-full px-3 overflow-hidden flex items-center ${clip.isElement ? 'cursor-move' : 'cursor-pointer'}`}
+                           onMouseDown={(e) => {
+                             if (clip.isElement) {
+                               e.stopPropagation();
+                               e.preventDefault();
+                               onSelectElement(clip.id);
+                               setDraggingHandle({ id: clip.id, type: 'move', startX: e.clientX, initialStart: clip.start, initialEnd: clip.start + clip.length });
+                             }
+                           }}
+                         >
+                           <span className="text-[10px] font-bold text-white truncate pointer-events-none select-none">{clip.name}</span>
+                         </div>
+                         {clip.isElement && (
+                           <div 
+                             className="absolute right-0 top-0 bottom-0 w-3 cursor-ew-resize hover:bg-white/30 z-20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                             onMouseDown={(e) => {
+                               e.stopPropagation();
+                               e.preventDefault();
+                               setDraggingHandle({ id: clip.id, type: 'end', startX: e.clientX, initialStart: clip.start, initialEnd: clip.start + clip.length });
+                             }}
+                           >
+                             <div className="w-0.5 h-3 bg-white/70 rounded-full" />
+                           </div>
+                         )}
                        </div>
                     ))}
                  </div>

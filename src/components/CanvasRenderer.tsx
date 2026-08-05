@@ -65,6 +65,10 @@ export const CanvasRenderer = forwardRef<CanvasRendererRef, CanvasRendererProps>
     const ctx = canvas?.getContext('2d');
     
     for (const el of elements) {
+      // Hit test only active elements
+      if (el.startTime !== undefined && currentTime < el.startTime) continue;
+      if (el.endTime !== undefined && currentTime > el.endTime) continue;
+      
       let hit = false;
       const elScale = el.scale || 1;
       
@@ -328,6 +332,10 @@ export const CanvasRenderer = forwardRef<CanvasRendererRef, CanvasRendererProps>
       // Draw Elements
       if (project?.elements) {
         for (const el of project.elements) {
+          // Skip if element is not active at current time
+          if (el.startTime !== undefined && currentTimeRef.current < el.startTime) continue;
+          if (el.endTime !== undefined && currentTimeRef.current > el.endTime) continue;
+
           ctx.save();
           ctx.globalAlpha = el.opacity;
           
